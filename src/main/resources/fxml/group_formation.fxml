@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.fifaworldcup.ui.GroupFormationController" 
+            prefWidth="1200" prefHeight="750">
+
+    <!-- Header -->
+    <top>
+        <VBox alignment="CENTER" style="-fx-background-color: linear-gradient(to right, #1e3c72, #2a5298); -fx-padding: 20;">
+            <Label text="⚽ Group Formation" style="-fx-font-size: 28px; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            <Label text="Organize teams into World Cup groups (A-H)" style="-fx-text-fill: #FFD700;"/>
+        </VBox>
+    </top>
+
+    <!-- Center Content -->
+    <center>
+        <HBox spacing="20" style="-fx-padding: 20;">
+            <!-- Left Side - Available Teams -->
+            <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 15; -fx-border-color: #ddd; -fx-border-radius: 10;" prefWidth="250">
+                <Label text="Available Teams" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <ListView fx:id="lstAvailableTeams" VBox.vgrow="ALWAYS" prefHeight="400"/>
+                
+                <Label text="Assign to Group:"/>
+                <ComboBox fx:id="cmbTargetGroup" promptText="Select Group" maxWidth="Infinity"/>
+                
+                <Button fx:id="btnAssignToGroup" text="Assign Selected →" onAction="#handleAssignToGroup" maxWidth="Infinity"/>
+                <Button fx:id="btnAutoAssign" text="Auto-Assign All" onAction="#handleAutoAssign" maxWidth="Infinity"
+                        style="-fx-background-color: #FFD700;"/>
+                <Button fx:id="btnClearGroups" text="Clear All Groups" onAction="#handleClearGroups" maxWidth="Infinity"
+                        style="-fx-background-color: #dc3545; -fx-text-fill: white;"/>
+            </VBox>
+            
+            <!-- Right Side - Groups Grid -->
+            <VBox spacing="15" HBox.hgrow="ALWAYS">
+                <Label text="World Cup Groups" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                
+                <GridPane hgap="15" vgap="15" VBox.vgrow="ALWAYS">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25"/>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25"/>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25"/>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints vgrow="ALWAYS" percentHeight="50"/>
+                        <RowConstraints vgrow="ALWAYS" percentHeight="50"/>
+                    </rowConstraints>
+                    
+                    <!-- Group A -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                        <Label text="Group A" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupA" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group B -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                        <Label text="Group B" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupB" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group C -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="0" GridPane.columnIndex="2">
+                        <Label text="Group C" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupC" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group D -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="0" GridPane.columnIndex="3">
+                        <Label text="Group D" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupD" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group E -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                        <Label text="Group E" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupE" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group F -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                        <Label text="Group F" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupF" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group G -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="1" GridPane.columnIndex="2">
+                        <Label text="Group G" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupG" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                    
+                    <!-- Group H -->
+                    <VBox spacing="5" style="-fx-background-color: white; -fx-border-color: #2a5298; -fx-border-width: 2; -fx-padding: 10;" GridPane.rowIndex="1" GridPane.columnIndex="3">
+                        <Label text="Group H" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;"/>
+                        <ListView fx:id="lstGroupH" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </GridPane>
+                
+                <Label fx:id="lblStatus" text="" style="-fx-text-fill: green; -fx-font-size: 12px;"/>
+            </VBox>
+        </HBox>
+    </center>
+
+    <!-- Footer -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #f0f0f0; -fx-padding: 15;">
+            <Button fx:id="btnBack" text="← Back to Home" onAction="#handleBack"
+                    style="-fx-background-color: #1e3c72; -fx-text-fill: white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnSaveGroups" text="Save Groups" onAction="#handleSaveGroups"
+                    style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-size: 14px;"/>
+        </HBox>
+    </bottom>
+</BorderPane>
