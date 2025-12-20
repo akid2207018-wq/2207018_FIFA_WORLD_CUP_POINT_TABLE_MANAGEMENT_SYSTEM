@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.geometry.Insets?>
+
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -7,50 +7,64 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.fifaworldcup.ui.HomeController">
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fifaworldcup.ui.HomeController">
 
     <top>
-        <VBox style="-fx-background-color: linear-gradient(to right, #1e3c72, #2a5298); -fx-padding:20;" alignment="CENTER">
-            <Label text="WORLD CUP" style="-fx-font-size:32px; -fx-text-fill:white; -fx-font-weight:bold;"/>
-            <Label text="Match & Points Table Management System" style="-fx-text-fill:#FFD700;"/>
+        <VBox alignment="CENTER" style="-fx-background-color: linear-gradient(to right, #1e3c72, #2a5298); -fx-padding:20;">
+            <Label style="-fx-font-size:32px; -fx-text-fill:white; -fx-font-weight:bold;" text="⚽FIFA WORLD CUP" />
+            <Label style="-fx-text-fill:#FFD700;" text="Match &amp; Points Table Management System" />
         </VBox>
     </top>
 
     <center>
         <ScrollPane fitToWidth="true">
             <content>
-                <VBox spacing="30" padding="20">
-                    <VBox style="-fx-background-color: #ffffff; -fx-border-color: #ddd; -fx-border-radius: 10; -fx-padding: 25;" spacing="10">
-                        <Label text="Welcome to FIFA World Cup Management System" style="-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#1e3c72;"/>
-                        <Label text="Manage team registration, schedule matches, track real-time points, and generate tournament brackets. This system provides a complete solution for organizing and managing FIFA World Cup tournaments." wrapText="true"/>
+                <VBox spacing="30" style="-fx-padding: 20;">
+                    <VBox spacing="10" style="-fx-background-color: #ffffff; -fx-border-color: #ddd; -fx-border-radius: 10; -fx-padding: 25;">
+                        <Label style="-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#1e3c72;" text="Welcome to FIFA World Cup Management System" />
+                        <Label text="Manage team registration, schedule matches, track real-time points, and generate tournament brackets. This system provides a complete solution for organizing and managing FIFA World Cup tournaments." wrapText="true" />
                     </VBox>
 
                     <VBox spacing="12">
-                        <Label text="Core Features" style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:#1e3c72;"/>
+                        <Label style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:#1e3c72;" text="Core Features" />
                         <HBox spacing="12">
                             <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
-                                <Button fx:id="btnTeamRegistration" text="Team Registration" maxWidth="Infinity"/>
-                                <Label text="Register teams with codes and flags" wrapText="true"/>
+                                <Button fx:id="btnTeamRegistration" maxWidth="Infinity" text="Team Registration" onAction="#handleTeamRegistration"/>
+                                <Label text="Register teams with codes and flags" wrapText="true" />
                             </VBox>
                             <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
-                                <Button fx:id="btnGroupFormation" text="Group Formation" maxWidth="Infinity"/>
-                                <Label text="Organize teams into World Cup groups" wrapText="true"/>
+                                <Button fx:id="btnGroupFormation" maxWidth="Infinity" text="Group Formation" onAction="#handleGroupFormation"/>
+                                <Label text="Organize teams into World Cup groups" wrapText="true" />
                             </VBox>
                             <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
-                                <Button fx:id="btnMatchScheduling" text="Match Scheduling" maxWidth="Infinity"/>
-                                <Label text="Generate group-stage fixtures" wrapText="true"/>
+                                <Button fx:id="btnMatchScheduling" maxWidth="Infinity" text="Match Scheduling" onAction="#handleMatchScheduling"/>
+                                <Label text="Generate group-stage fixtures" wrapText="true" />
                             </VBox>
                         </HBox>
 
                         <HBox spacing="12">
                             <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
-                                <Button fx:id="btnMatchResults" text="Match Results" maxWidth="Infinity"/>
-                                <Label text="Enter and update match scores" wrapText="true"/>
+                                <Button fx:id="btnMatchResults" maxWidth="Infinity" text="Match Results" onAction="#handleMatchResults"/>
+                                <Label text="Enter and update match scores" wrapText="true" />
                             </VBox>
                             <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
-                                <Button fx:id="btnPointsTable" text="Points Table" maxWidth="Infinity"/>
-                                <Label text="View real-time standings & rankings" wrapText="true"/>
+                                <Button fx:id="btnPointsTable" maxWidth="Infinity" text="Points Table" onAction="#handlePointsTable"/>
+                                <Label text="View real-time standings &amp; rankings" wrapText="true" />
+                            </VBox>
+                            <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
+                                <Button fx:id="btnKnockoutBracket" maxWidth="Infinity" text="Knockout Bracket" onAction="#handleKnockoutBracket"/>
+                                <Label text="View Round of 16 to Finals" wrapText="true" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12">
+                            <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
+                                <Button fx:id="btnMatchHistory" maxWidth="Infinity" text="Match History" onAction="#handleMatchHistory"/>
+                                <Label text="View all past match results" wrapText="true" />
+                            </VBox>
+                            <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
+                                <Button fx:id="btnPlayerStats" maxWidth="Infinity" text="Player Statistics" onAction="#handlePlayerStats"/>
+                                <Label text="Track goals, assists &amp; performance" wrapText="true" />
                             </VBox>
                         </HBox>
                     </VBox>
@@ -60,8 +74,8 @@
     </center>
 
     <bottom>
-        <HBox style="-fx-background-color:#1e3c72; -fx-padding:12;" alignment="CENTER">
-            <Label text="FIFA World Cup Management System v1.0 | © 2025 | All Rights Reserved" style="-fx-text-fill:#FFD700;"/>
+        <HBox alignment="CENTER" style="-fx-background-color:#1e3c72; -fx-padding:12;">
+            <Label style="-fx-text-fill:#FFD700;" text="FIFA World Cup Management System v1.0 | © 2025 | All Rights Reserved" />
         </HBox>
     </bottom>
 </BorderPane>
