@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="650" prefWidth="900" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fifaworldcup.ui.TeamRegistrationController">
+    
+    <VBox spacing="15" style="-fx-padding: 15;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        
+        <VBox alignment="CENTER" style="-fx-background-color: #2a5298; -fx-padding:20;">
+            <Label style="-fx-font-size:28px; -fx-text-fill:white; -fx-font-weight:bold;" text="Team Registration" />
+            <Label style="-fx-text-fill:white;" text="Register teams" />
+        </VBox>
+        
+            <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-border-color: #ddd; -fx-border-radius: 10;">
+                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;" text="Team Details" />
+                
+                <GridPane hgap="15" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="120" prefWidth="120" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                    </columnConstraints>
+                    
+                    <Label text="Team Name:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="txtTeamName" promptText="Enter team name" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    
+                    <Label text="Team Code:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="txtTeamCode" promptText="3-letter code (e.g., BRA)" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    
+                    <Label text="Flag Path:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <TextField fx:id="txtFlagPath" promptText="Path to flag image" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="btnBrowseFlag" onAction="#handleBrowseFlag" text="Browse..." />
+                    </HBox>
+            <rowConstraints>
+               <RowConstraints />
+               <RowConstraints />
+               <RowConstraints />
+            </rowConstraints>
+                </GridPane>
+                
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Button fx:id="btnAddTeam" onAction="#handleAddTeam" style="-fx-background-color: #2a5298; -fx-text-fill: white;" text="Add Team" />
+                    <Button fx:id="btnUpdateTeam" onAction="#handleUpdateTeam" style="-fx-background-color: yellow; -fx-text-fill: black;" text="Update Team" />
+                    <Button fx:id="btnDeleteTeam" onAction="#handleDeleteTeam" style="-fx-background-color: red; -fx-text-fill: white;" text="Delete Team" textFill="WHITE" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnExportJson" onAction="#handleExportJson" text="Export to JSON" />
+                    <Button fx:id="btnImportJson" onAction="#handleImportJson" text="Import from JSON" />
+                </HBox>
+                
+                <Label fx:id="lblStatus" style="-fx-text-fill: green;" text="" />
+            </VBox>
+            
+            <VBox spacing="10" VBox.vgrow="ALWAYS">
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Registered Teams" />
+                <TableView fx:id="tblTeams" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colId" prefWidth="50" text="ID" />
+                        <TableColumn fx:id="colName" prefWidth="250" text="Team Name" />
+                        <TableColumn fx:id="colCode" prefWidth="80" text="Code" />
+                        <TableColumn fx:id="colGroup" prefWidth="80" text="Group" />
+                    </columns>
+                </TableView>
+            </VBox>
+            
+            <Button fx:id="btnBack" onAction="#handleBack" style="-fx-background-color: #2a5298; -fx-text-fill: white;" text="Back" />
+    </VBox>
+</AnchorPane>
