@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="650" prefWidth="900" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fifaworldcup.ui.KnockoutBracketController">
+    
+    <VBox spacing="15" style="-fx-padding: 15;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        
+        <VBox alignment="CENTER" style="-fx-background-color: #2a5298; -fx-padding:20;">
+            <Label style="-fx-font-size:28px; -fx-text-fill:white; -fx-font-weight:bold;" text="Knockout Bracket" />
+            <Label style="-fx-text-fill:white;" text="Round of 16 to Finals" />
+        </VBox>
+        
+        <HBox spacing="10">
+                <Label text="View Round:" />
+                <ComboBox fx:id="cmbSelectRound" onAction="#handleRoundChange" prefWidth="150" promptText="Round of 16" />
+                <Button fx:id="btnGenerateBracket" onAction="#handleGenerateBracket" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Generate Bracket" />
+                <Button fx:id="btnRefresh" onAction="#handleRefresh" text="Refresh" />
+            </HBox>
+            
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" VBox.vgrow="ALWAYS">
+                <content>
+                    <GridPane fx:id="bracketGrid" hgap="20" style="-fx-padding: 10;" vgap="15">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="25" />
+                        </columnConstraints>
+                        
+                        <VBox fx:id="vboxRound16" spacing="15" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;" text="ROUND OF 16" />
+                        </VBox>
+                        
+                        <VBox fx:id="vboxQuarter" spacing="15" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;" text="QUARTER-FINALS" />
+                        </VBox>
+                        
+                        <VBox fx:id="vboxSemi" spacing="15" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;" text="SEMI-FINALS" />
+                        </VBox>
+                        
+                        <VBox fx:id="vboxFinal" alignment="TOP_CENTER" spacing="15" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;" text="FINAL" />
+                        </VBox>
+                  <rowConstraints>
+                     <RowConstraints />
+                  </rowConstraints>
+                    </GridPane>
+                </content>
+            </ScrollPane>
+            
+            <Label fx:id="lblStatus" style="-fx-text-fill: green;" text="" />
+            
+            <Button fx:id="btnBack" onAction="#handleBack" style="-fx-background-color: #2a5298; -fx-text-fill: white;" text="Back" />
+    </VBox>
+</AnchorPane>

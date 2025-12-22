@@ -22,10 +22,8 @@ public class HomePage {
         root = new BorderPane();
         root.setStyle("-fx-background-color: #f0f0f0;");
         
-        // Top: Header (includes in-app close button)
         root.setTop(createHeader());
         
-        // Center: Main Content wrapped in a ScrollPane so content scrolls on small windows
         ScrollPane sp = new ScrollPane(createMainContent());
         sp.setFitToWidth(true);
         sp.setPannable(true);
@@ -34,7 +32,6 @@ public class HomePage {
         sp.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         root.setCenter(sp);
         
-        // Bottom: Footer
         root.setBottom(createFooter());
     }
 
@@ -63,10 +60,8 @@ public class HomePage {
         mainContent.setSpacing(30);
         mainContent.setStyle("-fx-background-color: #f0f0f0;");
 
-        // Welcome Section
         VBox welcomeSection = createWelcomeSection();
         
-        // Features Grid
         VBox featuresSection = createFeaturesSection();
         
         mainContent.getChildren().addAll(welcomeSection, featuresSection);
@@ -102,7 +97,6 @@ public class HomePage {
         Label featuresTitle = new Label("Core Features");
         featuresTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         featuresTitle.setTextFill(Color.web("#1e3c72"));
-        // Keep only the first five core feature buttons (no functionality attached)
         HBox row1 = new HBox();
         row1.setSpacing(20);
         row1.setFillHeight(true);
@@ -125,7 +119,6 @@ public class HomePage {
     }
 
     private HBox createFeatureButtonsRow(String... features) {
-        // This method is no longer used; preserve implementation in case of future reuse.
         HBox row = new HBox();
         row.setSpacing(20);
         row.setFillHeight(true);

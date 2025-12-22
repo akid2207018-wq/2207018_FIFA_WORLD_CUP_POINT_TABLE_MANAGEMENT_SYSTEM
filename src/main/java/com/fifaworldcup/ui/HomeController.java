@@ -1,19 +1,17 @@
 package com.fifaworldcup.ui;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 
 public class HomeController {
-    @FXML
-    private BorderPane root;
-
     @FXML
     private Button btnTeamRegistration;
 
@@ -38,69 +36,57 @@ public class HomeController {
     @FXML
     private Button btnPlayerStats;
 
-    public void handleTeamRegistration() {
-        navigateToScene("/fxml/team_registration.fxml", "Team Registration");
+    @FXML
+    public void handleTeamRegistration(ActionEvent event) {
+        loadScene(event, "/fxml/team_registration.fxml", "Team Registration");
     }
 
-    public void handleGroupFormation() {
-        navigateToScene("/fxml/group_formation.fxml", "Group Formation");
+    @FXML
+    public void handleGroupFormation(ActionEvent event) {
+        loadScene(event, "/fxml/group_formation.fxml", "Group Formation");
     }
 
-    public void handleMatchScheduling() {
-        navigateToScene("/fxml/match_scheduling.fxml", "Match Scheduling");
+    @FXML
+    public void handleMatchScheduling(ActionEvent event) {
+        loadScene(event, "/fxml/match_scheduling.fxml", "Match Scheduling");
     }
 
-    public void handleMatchResults() {
-        navigateToScene("/fxml/match_results.fxml", "Match Results");
+    @FXML
+    public void handleMatchResults(ActionEvent event) {
+        loadScene(event, "/fxml/match_results.fxml", "Match Results");
     }
 
-    public void handlePointsTable() {
-        navigateToScene("/fxml/points_table.fxml", "Points Table");
+    @FXML
+    public void handlePointsTable(ActionEvent event) {
+        loadScene(event, "/fxml/points_table.fxml", "Points Table");
     }
 
-    public void handleKnockoutBracket() {
-        navigateToScene("/fxml/knockout_bracket.fxml", "Knockout Bracket");
+    @FXML
+    public void handleKnockoutBracket(ActionEvent event) {
+        loadScene(event, "/fxml/knockout_bracket.fxml", "Knockout Bracket");
     }
 
-    public void handleMatchHistory() {
-        navigateToScene("/fxml/match_history.fxml", "Match History");
+    @FXML
+    public void handleMatchHistory(ActionEvent event) {
+        loadScene(event, "/fxml/match_history.fxml", "Match History");
     }
 
-    public void handlePlayerStats() {
-        navigateToScene("/fxml/player_stats.fxml", "Player Statistics");
+    @FXML
+    public void handlePlayerStats(ActionEvent event) {
+        loadScene(event, "/fxml/player_stats.fxml", "Player Statistics");
     }
 
-    private void navigateToScene(String fxmlPath, String title) {
+    private void loadScene(ActionEvent event, String fxmlPath, String title) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent newRoot = loader.load();
-            
-            Stage stage = (Stage) root.getScene().getWindow();
-            Scene scene = new Scene(newRoot);
-            
-            // Apply stylesheet
-            java.net.URL cssUrl = getClass().getResource("/styles/style.css");
-            if (cssUrl != null) {
-                scene.getStylesheets().add(cssUrl.toExternalForm());
-            }
-            
+            Parent root = loader.load();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root);
             stage.setScene(scene);
-            stage.setTitle("FIFA World Cup - " + title);
+            stage.setTitle(title);
+            stage.sizeToScene();
         } catch (IOException e) {
-            showAlert("Navigation Error", "Failed to load " + title + " page: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
-    }
-
-    private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    public BorderPane getRoot() {
-        return root;
     }
 }

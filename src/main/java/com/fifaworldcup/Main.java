@@ -20,10 +20,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Ensure OS window decorations are enabled before showing the stage
             primaryStage.initStyle(StageStyle.DECORATED);
-
-            // Prefer loading layout from FXML; fallback to programmatic `HomePage` if FXML missing or fails
             Scene scene;
             java.net.URL fxmlUrl = getClass().getResource("/fxml/home.fxml");
             if (fxmlUrl != null) {
@@ -41,7 +38,6 @@ public class Main extends Application {
                 scene = new Scene(homePage.getRoot(), 1160, 590);
             }
             
-            // Load CSS stylesheet
             java.net.URL cssUrl = getClass().getResource("/styles/style.css");
             if (cssUrl != null) {
                 scene.getStylesheets().add(cssUrl.toExternalForm());
@@ -49,7 +45,6 @@ public class Main extends Application {
                 System.err.println("Warning: stylesheet '/styles/style.css' not found on classpath.");
             }
 
-            // Load application icons from resources (if provided). Common sizes: 256,64,32,16
             String[] iconPaths = new String[] {
                 "/icons/app-icon-256.png",
                 "/icons/app-icon-64.png",
@@ -65,19 +60,14 @@ public class Main extends Application {
                 } catch (Exception ignore) {
                 }
             }
-
-            // If no icons were loaded from resources, generate a simple fallback icon programmatically
             if (primaryStage.getIcons().isEmpty()) {
                 int size = 64;
                 Canvas canvas = new Canvas(size, size);
                 GraphicsContext gc = canvas.getGraphicsContext2D();
-                // background
                 gc.setFill(Color.web("#1e3c72"));
                 gc.fillRect(0, 0, size, size);
-                // gold circle
                 gc.setFill(Color.web("#FFD700"));
                 gc.fillOval(8, 8, size-16, size-16);
-                // letters
                 gc.setFill(Color.web("#1e3c72"));
                 gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 24));
                 gc.fillText("WC", 18, 42);
@@ -94,7 +84,6 @@ public class Main extends Application {
             primaryStage.setWidth(1000);
             primaryStage.setHeight(500);
             primaryStage.setResizable(true);
-            // Ensure window closes cleanly
             primaryStage.setOnCloseRequest(event -> {
                 Platform.exit();
                 System.exit(0);

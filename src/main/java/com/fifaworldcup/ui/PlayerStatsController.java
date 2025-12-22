@@ -2,8 +2,12 @@ package com.fifaworldcup.ui;
 
 import com.fifaworldcup.model.Player;
 import com.fifaworldcup.service.PlayerService;
-import com.fifaworldcup.util.NavigationUtil;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -132,7 +136,17 @@ public class PlayerStatsController {
     }
 
     public void handleBack(ActionEvent event) {
-        NavigationUtil.navigateToHome(event);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("FIFA World Cup - Home");
+            stage.sizeToScene();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void handleFilterChange() {
