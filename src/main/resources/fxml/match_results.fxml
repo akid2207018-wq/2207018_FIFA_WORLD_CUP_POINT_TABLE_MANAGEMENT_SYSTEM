@@ -32,11 +32,11 @@
                     <ColumnConstraints />
                 </columnConstraints>
                 
-                <Label text="Home Score:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                <TextField fx:id="txtHomeScore" prefWidth="100" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <Label text="Team 1 Score:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <TextField fx:id="txtTeam1Score" prefWidth="100" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                 
-                <Label text="Away Score:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <TextField fx:id="txtAwayScore" prefWidth="100" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Team 2 Score:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <TextField fx:id="txtTeam2Score" prefWidth="100" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             </GridPane>
             
             <HBox spacing="10">
@@ -59,10 +59,10 @@
                 <columns>
                     <TableColumn fx:id="colMatchNumber" prefWidth="80" text="Match #" />
                     <TableColumn fx:id="colGroup" prefWidth="70" text="Group" />
-                    <TableColumn fx:id="colHomeTeam" prefWidth="180" text="Home Team" />
-                    <TableColumn fx:id="colHomeScore" prefWidth="70" text="Score" />
-                    <TableColumn fx:id="colAwayScore" prefWidth="70" text="Score" />
-                    <TableColumn fx:id="colAwayTeam" prefWidth="180" text="Away Team" />
+                    <TableColumn fx:id="colTeam1" prefWidth="180" text="Team 1" />
+                    <TableColumn fx:id="colTeam1Score" prefWidth="70" text="Score" />
+                    <TableColumn fx:id="colTeam2Score" prefWidth="70" text="Score" />
+                    <TableColumn fx:id="colTeam2" prefWidth="180" text="Team 2" />
                     <TableColumn fx:id="colCompleted" prefWidth="90" text="Completed" />
                 </columns>
             </TableView>

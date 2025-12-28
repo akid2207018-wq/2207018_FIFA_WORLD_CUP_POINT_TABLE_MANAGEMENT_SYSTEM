@@ -23,7 +23,7 @@ public class MatchService {
     public void addMatch(Match match) throws SQLException {
     }
 
-    public void updateMatchResult(int matchId, int homeScore, int awayScore) throws SQLException {
+    public void updateMatchResult(int matchId, int team1Score, int team2Score) throws SQLException {
     }
 
     public Match getMatchById(int id) throws SQLException {

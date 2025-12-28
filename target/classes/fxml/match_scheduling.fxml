@@ -44,8 +44,8 @@
                     <columns>
                         <TableColumn fx:id="colMatchNumber" prefWidth="80" text="Match #" />
                         <TableColumn fx:id="colGroup" prefWidth="71.33333587646484" text="Group" />
-                        <TableColumn fx:id="colHomeTeam" prefWidth="198.6666717529297" text="Home Team" />
-                        <TableColumn fx:id="colAwayTeam" prefWidth="200" text="Away Team" />
+                        <TableColumn fx:id="colTeam1" prefWidth="198.6666717529297" text="Team 1" />
+                        <TableColumn fx:id="colTeam2" prefWidth="200" text="Team 2" />
                         <TableColumn fx:id="colStage" prefWidth="120" text="Stage" />
                         <TableColumn fx:id="colStatus" prefWidth="100" text="Status" />
                     </columns>

@@ -5,8 +5,7 @@
 <?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
-            fx:controller="com.fifaworldcup.ui.PlayerStatsController" 
-            prefWidth="900" prefHeight="650">
+            fx:controller="com.fifaworldcup.ui.PlayerStatsController">
     
     <VBox AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" spacing="15" style="-fx-padding: 15;">
         
@@ -59,7 +58,7 @@
                 <Label fx:id="lblStatus" text="" style="-fx-text-fill: green;"/>
             </VBox>
             
-            <HBox spacing="20" prefHeight="250">
+            <HBox spacing="20">
                 <VBox spacing="10" HBox.hgrow="ALWAYS">
                     <Label text="🥇 Top Scorers" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;"/>
                     <TableView fx:id="tblTopScorers" VBox.vgrow="ALWAYS">

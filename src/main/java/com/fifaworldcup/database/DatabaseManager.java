@@ -48,17 +48,17 @@ public class DatabaseManager {
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS matches (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "home_team_id INTEGER, " +
-                "away_team_id INTEGER, " +
-                "home_score INTEGER DEFAULT 0, " +
-                "away_score INTEGER DEFAULT 0, " +
+                "team1_id INTEGER, " +
+                "team2_id INTEGER, " +
+                "team1_score INTEGER DEFAULT 0, " +
+                "team2_score INTEGER DEFAULT 0, " +
                 "stage TEXT, " +
                 "group_name TEXT, " +
                 "match_date TEXT, " +
                 "match_number INTEGER, " +
                 "completed INTEGER DEFAULT 0, " +
-                "FOREIGN KEY(home_team_id) REFERENCES teams(id), " +
-                "FOREIGN KEY(away_team_id) REFERENCES teams(id))"
+                "FOREIGN KEY(team1_id) REFERENCES teams(id), " +
+                "FOREIGN KEY(team2_id) REFERENCES teams(id))"
             );
 
             stmt.execute(

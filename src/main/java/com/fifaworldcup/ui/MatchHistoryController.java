@@ -26,16 +26,16 @@ public class MatchHistoryController {
     private TableColumn<Match, String> colGroup;
     
     @FXML
-    private TableColumn<Match, String> colHomeTeam;
+    private TableColumn<Match, String> colTeam1;
     
     @FXML
-    private TableColumn<Match, Integer> colHomeScore;
+    private TableColumn<Match, Integer> colTeam1Score;
     
     @FXML
-    private TableColumn<Match, Integer> colAwayScore;
+    private TableColumn<Match, Integer> colTeam2Score;
     
     @FXML
-    private TableColumn<Match, String> colAwayTeam;
+    private TableColumn<Match, String> colTeam2;
     
     @FXML
     private TableColumn<Match, String> colDate;
@@ -98,10 +98,10 @@ public class MatchHistoryController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene currentScene = stage.getScene();
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             stage.setScene(scene);
             stage.setTitle("FIFA World Cup - Home");
-            stage.sizeToScene();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -140,10 +140,10 @@ public class PlayerStatsController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene currentScene = stage.getScene();
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             stage.setScene(scene);
             stage.setTitle("FIFA World Cup - Home");
-            stage.sizeToScene();
         } catch (Exception e) {
             e.printStackTrace();
         }

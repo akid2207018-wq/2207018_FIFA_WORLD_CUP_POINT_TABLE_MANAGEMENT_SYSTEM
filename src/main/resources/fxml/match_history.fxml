@@ -50,10 +50,10 @@
                         <TableColumn fx:id="colMatchNumber" prefWidth="80" text="Match #" />
                         <TableColumn fx:id="colStage" prefWidth="100" text="Stage" />
                         <TableColumn fx:id="colGroup" prefWidth="70" text="Group" />
-                        <TableColumn fx:id="colHomeTeam" prefWidth="180" text="Home Team" />
-                        <TableColumn fx:id="colHomeScore" prefWidth="70" text="Score" />
-                        <TableColumn fx:id="colAwayScore" prefWidth="70" text="Score" />
-                        <TableColumn fx:id="colAwayTeam" prefWidth="180" text="Away Team" />
+                        <TableColumn fx:id="colTeam1" prefWidth="180" text="Team 1" />
+                        <TableColumn fx:id="colTeam1Score" prefWidth="70" text="Score" />
+                        <TableColumn fx:id="colTeam2Score" prefWidth="70" text="Score" />
+                        <TableColumn fx:id="colTeam2" prefWidth="180" text="Team 2" />
                         <TableColumn fx:id="colDate" prefWidth="150" text="Date" />
                     </columns>
                 </TableView>

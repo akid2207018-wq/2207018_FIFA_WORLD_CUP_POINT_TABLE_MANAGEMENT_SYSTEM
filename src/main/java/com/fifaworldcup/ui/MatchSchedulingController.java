@@ -20,10 +20,10 @@ public class MatchSchedulingController {
     private TableColumn<Match, Integer> colMatchNumber;
     
     @FXML
-    private TableColumn<Match, String> colHomeTeam;
+    private TableColumn<Match, String> colTeam1;
     
     @FXML
-    private TableColumn<Match, String> colAwayTeam;
+    private TableColumn<Match, String> colTeam2;
     
     @FXML
     private TableColumn<Match, String> colGroup;
@@ -92,10 +92,10 @@ public class MatchSchedulingController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene currentScene = stage.getScene();
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             stage.setScene(scene);
             stage.setTitle("FIFA World Cup - Home");
-            stage.sizeToScene();
         } catch (Exception e) {
             e.printStackTrace();
         }

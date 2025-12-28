@@ -1,33 +1,38 @@
 package com.fifaworldcup.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Match {
     private int id;
-    private int homeTeamId;
-    private int awayTeamId;
-    private String homeTeamName;
-    private String awayTeamName;
-    private int homeScore;
-    private int awayScore;
+    private int team1Id;
+    private int team2Id;
+    private String team1Name;
+    private String team2Name;
+    private int team1Score;
+    private int team2Score;
     private String stage;
     private String group;
     private LocalDateTime matchDate;
     private boolean completed;
     private int matchNumber;
+    private List<Goal> goalScorers;
 
     public Match() {
+        this.goalScorers = new ArrayList<>();
     }
 
-    public Match(int id, int homeTeamId, int awayTeamId, String stage, String group) {
+    public Match(int id, int team1Id, int team2Id, String stage, String group) {
         this.id = id;
-        this.homeTeamId = homeTeamId;
-        this.awayTeamId = awayTeamId;
+        this.team1Id = team1Id;
+        this.team2Id = team2Id;
         this.stage = stage;
         this.group = group;
-        this.homeScore = 0;
-        this.awayScore = 0;
+        this.team1Score = 0;
+        this.team2Score = 0;
         this.completed = false;
+        this.goalScorers = new ArrayList<>();
     }
 
     public int getId() {
@@ -38,52 +43,52 @@ public class Match {
         this.id = id;
     }
 
-    public int getHomeTeamId() {
-        return homeTeamId;
+    public int getTeam1Id() {
+        return team1Id;
     }
 
-    public void setHomeTeamId(int homeTeamId) {
-        this.homeTeamId = homeTeamId;
+    public void setTeam1Id(int team1Id) {
+        this.team1Id = team1Id;
     }
 
-    public int getAwayTeamId() {
-        return awayTeamId;
+    public int getTeam2Id() {
+        return team2Id;
     }
 
-    public void setAwayTeamId(int awayTeamId) {
-        this.awayTeamId = awayTeamId;
+    public void setTeam2Id(int team2Id) {
+        this.team2Id = team2Id;
     }
 
-    public String getHomeTeamName() {
-        return homeTeamName;
+    public String getTeam1Name() {
+        return team1Name;
     }
 
-    public void setHomeTeamName(String homeTeamName) {
-        this.homeTeamName = homeTeamName;
+    public void setTeam1Name(String team1Name) {
+        this.team1Name = team1Name;
     }
 
-    public String getAwayTeamName() {
-        return awayTeamName;
+    public String getTeam2Name() {
+        return team2Name;
     }
 
-    public void setAwayTeamName(String awayTeamName) {
-        this.awayTeamName = awayTeamName;
+    public void setTeam2Name(String team2Name) {
+        this.team2Name = team2Name;
     }
 
-    public int getHomeScore() {
-        return homeScore;
+    public int getTeam1Score() {
+        return team1Score;
     }
 
-    public void setHomeScore(int homeScore) {
-        this.homeScore = homeScore;
+    public void setTeam1Score(int team1Score) {
+        this.team1Score = team1Score;
     }
 
-    public int getAwayScore() {
-        return awayScore;
+    public int getTeam2Score() {
+        return team2Score;
     }
 
-    public void setAwayScore(int awayScore) {
-        this.awayScore = awayScore;
+    public void setTeam2Score(int team2Score) {
+        this.team2Score = team2Score;
     }
 
     public String getStage() {
@@ -125,9 +130,29 @@ public class Match {
     public void setMatchNumber(int matchNumber) {
         this.matchNumber = matchNumber;
     }
+public List<Goal> getGoalScorers() {
+        return goalScorers;
+    }
 
+    public void setGoalScorers(List<Goal> goalScorers) {
+        this.goalScorers = goalScorers;
+    }
+
+    public void addGoal(Goal goal) {
+        this.goalScorers.add(goal);
+    }
+
+    public void removeGoal(Goal goal) {
+        this.goalScorers.remove(goal);
+    }
+
+    public void clearGoals() {
+        this.goalScorers.clear();
+    }
+
+    
     @Override
     public String toString() {
-        return homeTeamName + " vs " + awayTeamName;
+        return team1Name + " vs " + team2Name;
     }
 }

@@ -81,10 +81,10 @@ public class HomeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
+            Scene currentScene = stage.getScene();
+            Scene scene = new Scene(root, currentScene.getWidth(), currentScene.getHeight());
             stage.setScene(scene);
             stage.setTitle(title);
-            stage.sizeToScene();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -137,7 +137,7 @@ fifa-world-cup-management/
 
 ### Tables
 - **teams**: Team information (id, name, code, group)
-- **matches**: Match records (id, home_team, away_team, score, stage, date)
+- **matches**: Match records (id, team1, team2, score, stage, date)
 - **standings**: Group standings (team_id, group, points, goals_for, goals_against, wins, draws, losses)
 - **knockout**: Knockout bracket structure (match_id, round, bracket_position)
 
