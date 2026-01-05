@@ -50,8 +50,12 @@ public class MatchService {
         String sql = "INSERT INTO matches (team1_id, team2_id, team1_score, team2_score, stage, group_name, " +
                      "match_date, match_number, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setInt(1, match.getTeam1Id());
             pstmt.setInt(2, match.getTeam2Id());
             pstmt.setInt(3, match.getTeam1Score());
@@ -63,12 +67,14 @@ public class MatchService {
             pstmt.setInt(9, match.isCompleted() ? 1 : 0);
             pstmt.executeUpdate();
             
-            ResultSet rs = pstmt.getGeneratedKeys();
+            rs = pstmt.getGeneratedKeys();
             if (rs.next()) {
                 match.setId(rs.getInt(1));
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
@@ -83,26 +89,34 @@ public class MatchService {
 
         String sql = "UPDATE matches SET team1_score = ?, team2_score = ?, completed = 1 WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, team1Score);
             pstmt.setInt(2, team2Score);
             pstmt.setInt(3, matchId);
             pstmt.executeUpdate();
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
     public void clearMatchResult(int matchId) throws SQLException {
         String sql = "UPDATE matches SET team1_score = 0, team2_score = 0, completed = 0 WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, matchId);
             pstmt.executeUpdate();
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
@@ -113,16 +127,22 @@ public class MatchService {
                      "LEFT JOIN teams t2 ON m.team2_id = t2.id " +
                      "WHERE m.id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 return mapResultSetToMatch(rs);
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return null;
     }
