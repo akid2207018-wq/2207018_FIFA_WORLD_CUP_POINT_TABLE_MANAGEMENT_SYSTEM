@@ -4,8 +4,10 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+<ScrollPane fitToHeight="true" fitToWidth="true" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.fifaworldcup.ui.PlayerStatsController">
+<content>
+<AnchorPane>
     
     <VBox AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" spacing="15" style="-fx-padding: 15;">
         
@@ -107,3 +109,5 @@
             <Button fx:id="btnBack" text="Back" onAction="#handleBack" style="-fx-background-color: #2a5298; -fx-text-fill: white;"/>
     </VBox>
 </AnchorPane>
+</content>
+</ScrollPane>

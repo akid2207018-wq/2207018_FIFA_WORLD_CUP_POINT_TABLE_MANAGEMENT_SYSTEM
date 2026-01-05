@@ -5,7 +5,6 @@ public class Team {
     private String name;
     private String code;
     private String group;
-    private String flagPath;
     private int played;
     private int won;
     private int drawn;
@@ -19,12 +18,11 @@ public class Team {
     public Team() {
     }
 
-    public Team(int id, String name, String code, String group, String flagPath) {
+    public Team(int id, String name, String code, String group) {
         this.id = id;
         this.name = name;
         this.code = code;
         this.group = group;
-        this.flagPath = flagPath;
         this.played = 0;
         this.won = 0;
         this.drawn = 0;
@@ -66,14 +64,6 @@ public class Team {
 
     public void setGroup(String group) {
         this.group = group;
-    }
-
-    public String getFlagPath() {
-        return flagPath;
-    }
-
-    public void setFlagPath(String flagPath) {
-        this.flagPath = flagPath;
     }
 
     public int getPlayed() {

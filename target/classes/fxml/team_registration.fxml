@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -13,7 +14,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650" prefWidth="900" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fifaworldcup.ui.TeamRegistrationController">
+<ScrollPane fitToHeight="true" fitToWidth="true" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fifaworldcup.ui.TeamRegistrationController">
+<content>
+<AnchorPane prefHeight="650" prefWidth="900">
     
     <VBox spacing="15" style="-fx-padding: 15;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         
@@ -37,13 +40,7 @@
                     <Label text="Team Code:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                     <TextField fx:id="txtTeamCode" promptText="3-letter code (e.g., BRA)" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                     
-                    <Label text="Flag Path:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                    <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                        <TextField fx:id="txtFlagPath" promptText="Path to flag image" HBox.hgrow="ALWAYS" />
-                        <Button fx:id="btnBrowseFlag" onAction="#handleBrowseFlag" text="Browse..." />
-                    </HBox>
             <rowConstraints>
-               <RowConstraints />
                <RowConstraints />
                <RowConstraints />
             </rowConstraints>
@@ -76,3 +73,5 @@
             <Button fx:id="btnBack" onAction="#handleBack" style="-fx-background-color: #2a5298; -fx-text-fill: white;" text="Back" />
     </VBox>
 </AnchorPane>
+</content>
+</ScrollPane>
