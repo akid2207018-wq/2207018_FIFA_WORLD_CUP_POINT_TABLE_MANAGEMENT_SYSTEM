@@ -1,0 +1,16 @@
+[
+  {
+    "id": 11,
+    "team1Id": 5,
+    "team2Id": 12,
+    "team1Name": "Spain",
+    "team2Name": "Croatia",
+    "team1Score": 1,
+    "team2Score": 2,
+    "stage": "GROUP",
+    "group": "A",
+    "matchDate": "2026-01-08 15:00:00",
+    "completed": true,
+    "matchNumber": 1
+  }
+]
