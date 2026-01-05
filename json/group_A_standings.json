@@ -1,0 +1,62 @@
+[
+  {
+    "id": 12,
+    "name": "Croatia",
+    "code": "CRO",
+    "group": "A",
+    "played": 1,
+    "won": 1,
+    "drawn": 0,
+    "lost": 0,
+    "goalsFor": 2,
+    "goalsAgainst": 1,
+    "goalDifference": 1,
+    "points": 3,
+    "qualified": false
+  },
+  {
+    "id": 24,
+    "name": "Ecuador",
+    "code": "ECU",
+    "group": "A",
+    "played": 0,
+    "won": 0,
+    "drawn": 0,
+    "lost": 0,
+    "goalsFor": 0,
+    "goalsAgainst": 0,
+    "goalDifference": 0,
+    "points": 0,
+    "qualified": false
+  },
+  {
+    "id": 30,
+    "name": "Tunisia",
+    "code": "TUN",
+    "group": "A",
+    "played": 0,
+    "won": 0,
+    "drawn": 0,
+    "lost": 0,
+    "goalsFor": 0,
+    "goalsAgainst": 0,
+    "goalDifference": 0,
+    "points": 0,
+    "qualified": false
+  },
+  {
+    "id": 5,
+    "name": "Spain",
+    "code": "ESP",
+    "group": "A",
+    "played": 1,
+    "won": 0,
+    "drawn": 0,
+    "lost": 1,
+    "goalsFor": 1,
+    "goalsAgainst": 2,
+    "goalDifference": -1,
+    "points": 0,
+    "qualified": false
+  }
+]

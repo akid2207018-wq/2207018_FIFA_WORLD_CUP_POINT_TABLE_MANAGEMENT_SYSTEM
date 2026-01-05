@@ -1,8 +1,6 @@
 package com.fifaworldcup.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Match {
     private int id;
@@ -17,10 +15,8 @@ public class Match {
     private LocalDateTime matchDate;
     private boolean completed;
     private int matchNumber;
-    private List<Goal> goalScorers;
 
     public Match() {
-        this.goalScorers = new ArrayList<>();
     }
 
     public Match(int id, int team1Id, int team2Id, String stage, String group) {
@@ -32,7 +28,6 @@ public class Match {
         this.team1Score = 0;
         this.team2Score = 0;
         this.completed = false;
-        this.goalScorers = new ArrayList<>();
     }
 
     public int getId() {
@@ -130,27 +125,11 @@ public class Match {
     public void setMatchNumber(int matchNumber) {
         this.matchNumber = matchNumber;
     }
-public List<Goal> getGoalScorers() {
-        return goalScorers;
+
+    public String getStatusText() {
+        return completed ? "Completed" : "Pending";
     }
 
-    public void setGoalScorers(List<Goal> goalScorers) {
-        this.goalScorers = goalScorers;
-    }
-
-    public void addGoal(Goal goal) {
-        this.goalScorers.add(goal);
-    }
-
-    public void removeGoal(Goal goal) {
-        this.goalScorers.remove(goal);
-    }
-
-    public void clearGoals() {
-        this.goalScorers.clear();
-    }
-
-    
     @Override
     public String toString() {
         return team1Name + " vs " + team2Name;
