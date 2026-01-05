@@ -1,8 +1,11 @@
 package com.fifaworldcup.ui;
 
+import com.fifaworldcup.database.DatabaseManager;
 import com.fifaworldcup.model.Match;
 import com.fifaworldcup.service.MatchService;
 import com.fifaworldcup.service.TeamService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,8 +21,15 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MatchSchedulingController {
@@ -51,7 +61,7 @@ public class MatchSchedulingController {
     private ComboBox<String> cmbFilterGroup;
     
     @FXML
-    private Button btnGenerateSchedule;
+    private Button btnImportSchedule;
     
     @FXML
     private Button btnClearSchedule;
@@ -113,84 +123,6 @@ public class MatchSchedulingController {
     }
 
     @FXML
-    public void handleGenerateSchedule() {
-        try {
-            // Check if matches already exist
-            int existingMatches = matchService.getTotalMatchCount();
-            int completedMatches = matchService.getCompletedMatchCount();
-            
-            if (existingMatches > 0) {
-                // If there are completed matches, don't allow regeneration
-                if (completedMatches > 0) {
-                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirm.setTitle("Matches In Progress");
-                    confirm.setHeaderText("Tournament Has Started");
-                    confirm.setContentText("There are " + completedMatches + " completed matches out of " + existingMatches + " total.\n\n" +
-                            "Choose an option:\n" +
-                            "• OK = Clear ALL matches and start fresh\n" +
-                            "• Cancel = Keep current matches");
-                    
-                    if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
-                        lblStatus.setText("Schedule generation cancelled. " + existingMatches + " matches preserved.");
-                        lblStatus.setStyle("-fx-text-fill: blue;");
-                        return;
-                    }
-                    matchService.clearAllMatches();
-                } else {
-                    // All matches pending - ask to regenerate
-                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirm.setTitle("Confirm Regenerate");
-                    confirm.setHeaderText("Schedule Already Exists");
-                    confirm.setContentText("There are " + existingMatches + " pending matches. Regenerate schedule?");
-                    
-                    if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
-                        return;
-                    }
-                    matchService.clearAllMatches();
-                }
-            }
-            
-            // Check if groups have teams
-            boolean hasTeamsInGroups = false;
-            int totalTeamsInGroups = 0;
-            String[] groups = {"A", "B", "C", "D", "E", "F", "G", "H"};
-            StringBuilder groupInfo = new StringBuilder();
-            
-            for (String group : groups) {
-                int count = teamService.getTeamCountInGroup(group);
-                if (count >= 2) {
-                    hasTeamsInGroups = true;
-                    totalTeamsInGroups += count;
-                    groupInfo.append("Group ").append(group).append(": ").append(count).append(" teams\n");
-                }
-            }
-            
-            if (!hasTeamsInGroups) {
-                showAlert("No Teams in Groups", 
-                    "Please assign at least 2 teams to groups before generating schedule.\n\n" +
-                    "How to fix:\n" +
-                    "1. Go to 'Team Registration' and import teams from JSON\n" +
-                    "2. Go to 'Group Formation' and assign teams to groups\n" +
-                    "3. Come back here and click 'Generate Schedule'", 
-                    Alert.AlertType.WARNING);
-                return;
-            }
-            
-            matchService.generateGroupStageMatches();
-            loadMatches();
-            
-            int totalMatches = matchService.getTotalMatchCount();
-            lblStatus.setText(totalMatches + " group stage matches generated!");
-            lblStatus.setStyle("-fx-text-fill: green;");
-            
-        } catch (SQLException e) {
-            showAlert("Database Error", "Failed to generate schedule: " + e.getMessage(), Alert.AlertType.ERROR);
-            lblStatus.setText("Error: " + e.getMessage());
-            lblStatus.setStyle("-fx-text-fill: red;");
-        }
-    }
-
-    @FXML
     public void handleClearSchedule() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirm Clear");
@@ -226,6 +158,89 @@ public class MatchSchedulingController {
                 lblStatus.setStyle("-fx-text-fill: green;");
             } catch (Exception e) {
                 showAlert("Export Error", "Failed to export schedule: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        }
+    }
+
+    @FXML
+    public void handleImportSchedule() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import Schedule from JSON");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        
+        // Set initial directory to the json folder if it exists
+        File jsonDir = new File("json");
+        if (jsonDir.exists() && jsonDir.isDirectory()) {
+            fileChooser.setInitialDirectory(jsonDir);
+        }
+        
+        Stage stage = (Stage) btnRefresh.getScene().getWindow();
+        File file = fileChooser.showOpenDialog(stage);
+        
+        if (file != null) {
+            // Direct JDBC import - bypasses all service layer try-with-resources issues
+            Connection conn = null;
+            Statement stmt = null;
+            PreparedStatement pstmt = null;
+            Reader reader = null;
+            
+            try {
+                DatabaseManager dbManager = DatabaseManager.getInstance();
+                conn = dbManager.getConnection();
+                
+                // Clear existing matches
+                stmt = conn.createStatement();
+                stmt.executeUpdate("DELETE FROM matches");
+                stmt.executeUpdate("UPDATE teams SET played = 0, won = 0, drawn = 0, lost = 0, " +
+                        "goals_for = 0, goals_against = 0, goal_difference = 0, points = 0, qualified = 0");
+                stmt.close();
+                stmt = null;
+                
+                // Read JSON file - use JsonArray to avoid LocalDateTime issues
+                reader = new FileReader(file);
+                com.google.gson.JsonArray jsonArray = com.google.gson.JsonParser.parseReader(reader).getAsJsonArray();
+                reader.close();
+                reader = null;
+                
+                // Insert each match directly
+                String sql = "INSERT INTO matches (team1_id, team2_id, team1_score, team2_score, stage, group_name, " +
+                             "match_date, match_number, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                pstmt = conn.prepareStatement(sql);
+                
+                int count = 0;
+                for (com.google.gson.JsonElement element : jsonArray) {
+                    com.google.gson.JsonObject obj = element.getAsJsonObject();
+                    pstmt.setInt(1, obj.get("team1Id").getAsInt());
+                    pstmt.setInt(2, obj.get("team2Id").getAsInt());
+                    pstmt.setInt(3, obj.get("team1Score").getAsInt());
+                    pstmt.setInt(4, obj.get("team2Score").getAsInt());
+                    pstmt.setString(5, obj.get("stage").getAsString());
+                    pstmt.setString(6, obj.get("group").getAsString());
+                    pstmt.setString(7, null); // matchDate always null
+                    pstmt.setInt(8, obj.get("matchNumber").getAsInt());
+                    pstmt.setInt(9, obj.get("completed").getAsBoolean() ? 1 : 0);
+                    pstmt.executeUpdate();
+                    count++;
+                }
+                
+                pstmt.close();
+                pstmt = null;
+                dbManager.releaseConnection(conn);
+                conn = null;
+                
+                loadMatches();
+                lblStatus.setText(count + " matches imported from " + file.getName());
+                lblStatus.setStyle("-fx-text-fill: green;");
+                
+            } catch (Exception e) {
+                showAlert("Import Error", "Failed to import schedule: " + e.getMessage(), Alert.AlertType.ERROR);
+                lblStatus.setText("Error: " + e.getMessage());
+                lblStatus.setStyle("-fx-text-fill: red;");
+            } finally {
+                if (reader != null) { try { reader.close(); } catch (Exception e) {} }
+                if (stmt != null) { try { stmt.close(); } catch (Exception e) {} }
+                if (pstmt != null) { try { pstmt.close(); } catch (Exception e) {} }
+                if (conn != null) { try { DatabaseManager.getInstance().releaseConnection(conn); } catch (Exception e) {} }
             }
         }
     }

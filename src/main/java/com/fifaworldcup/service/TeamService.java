@@ -43,16 +43,22 @@ public class TeamService {
             "SELECT COUNT(*) FROM teams WHERE LOWER(name) = LOWER(?)" :
             "SELECT COUNT(*) FROM teams WHERE LOWER(name) = LOWER(?) AND id != ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name.trim());
             if (excludeId != null) {
                 pstmt.setInt(2, excludeId);
             }
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
     
@@ -61,16 +67,22 @@ public class TeamService {
             "SELECT COUNT(*) FROM teams WHERE UPPER(code) = UPPER(?)" :
             "SELECT COUNT(*) FROM teams WHERE UPPER(code) = UPPER(?) AND id != ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, code.trim());
             if (excludeId != null) {
                 pstmt.setInt(2, excludeId);
             }
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
@@ -144,16 +156,24 @@ public class TeamService {
                      "ORDER BY gap " +
                      "LIMIT 1";
         
-        try (PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 int gap = rs.getInt("gap");
+                rs.close();
+                pstmt.close();
                 
                 // Check if this gap is less than the max ID (meaning it's a real gap)
                 String maxSql = "SELECT MAX(id) as max_id FROM teams";
-                try (PreparedStatement maxPstmt = conn.prepareStatement(maxSql);
-                     ResultSet maxRs = maxPstmt.executeQuery()) {
+                PreparedStatement maxPstmt = null;
+                ResultSet maxRs = null;
+                try {
+                    maxPstmt = conn.prepareStatement(maxSql);
+                    maxRs = maxPstmt.executeQuery();
                     
                     if (maxRs.next()) {
                         int maxId = maxRs.getInt("max_id");
@@ -161,17 +181,29 @@ public class TeamService {
                             return gap; // Found a gap in the sequence
                         }
                     }
+                } finally {
+                    if (maxRs != null) try { maxRs.close(); } catch (SQLException e) {}
+                    if (maxPstmt != null) try { maxPstmt.close(); } catch (SQLException e) {}
                 }
             }
             
             // Check if table is empty, start from 1
             String countSql = "SELECT COUNT(*) as count FROM teams";
-            try (PreparedStatement countPstmt = conn.prepareStatement(countSql);
-                 ResultSet countRs = countPstmt.executeQuery()) {
+            PreparedStatement countPstmt = null;
+            ResultSet countRs = null;
+            try {
+                countPstmt = conn.prepareStatement(countSql);
+                countRs = countPstmt.executeQuery();
                 if (countRs.next() && countRs.getInt("count") == 0) {
                     return 1; // Start from 1 for empty table
                 }
+            } finally {
+                if (countRs != null) try { countRs.close(); } catch (SQLException e) {}
+                if (countPstmt != null) try { countPstmt.close(); } catch (SQLException e) {}
             }
+        } finally {
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
         }
         
         return null; // No gaps found, use auto-increment
@@ -193,55 +225,64 @@ public class TeamService {
 
         String sql = "UPDATE teams SET name = ?, code = ?, group_name = ? WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, team.getName().trim());
             pstmt.setString(2, team.getCode().toUpperCase().trim());
             pstmt.setString(3, team.getGroup());
             pstmt.setInt(4, team.getId());
             pstmt.executeUpdate();
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
     public void deleteTeam(int teamId) throws SQLException {
-        Connection conn = dbManager.getConnection();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
         try {
+            conn = dbManager.getConnection();
+            
             // First delete related matches
             String deleteMatches = "DELETE FROM matches WHERE team1_id = ? OR team2_id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(deleteMatches)) {
-                pstmt.setInt(1, teamId);
-                pstmt.setInt(2, teamId);
-                pstmt.executeUpdate();
-            }
+            pstmt = conn.prepareStatement(deleteMatches);
+            pstmt.setInt(1, teamId);
+            pstmt.setInt(2, teamId);
+            pstmt.executeUpdate();
+            pstmt.close();
             
             // Delete related players
             String deletePlayers = "DELETE FROM players WHERE team_id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(deletePlayers)) {
-                pstmt.setInt(1, teamId);
-                pstmt.executeUpdate();
-            }
+            pstmt = conn.prepareStatement(deletePlayers);
+            pstmt.setInt(1, teamId);
+            pstmt.executeUpdate();
+            pstmt.close();
             
             // Delete knockout matches
             String deleteKnockout = "DELETE FROM knockout_matches WHERE team1_id = ? OR team2_id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(deleteKnockout)) {
-                pstmt.setInt(1, teamId);
-                pstmt.setInt(2, teamId);
-                pstmt.executeUpdate();
-            }
+            pstmt = conn.prepareStatement(deleteKnockout);
+            pstmt.setInt(1, teamId);
+            pstmt.setInt(2, teamId);
+            pstmt.executeUpdate();
+            pstmt.close();
             
             // Finally delete the team
             String sql = "DELETE FROM teams WHERE id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, teamId);
-                pstmt.executeUpdate();
-            }
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, teamId);
+            pstmt.executeUpdate();
+            pstmt.close();
+            pstmt = null;
             
             // Reset auto-increment counter if the deleted ID was the highest
             resetAutoIncrementIfNeeded(conn);
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
     
@@ -252,43 +293,57 @@ public class TeamService {
     private void resetAutoIncrementIfNeeded(Connection conn) throws SQLException {
         // Get the current maximum ID
         String maxSql = "SELECT MAX(id) as max_id FROM teams";
-        try (PreparedStatement pstmt = conn.prepareStatement(maxSql);
-             ResultSet rs = pstmt.executeQuery()) {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            pstmt = conn.prepareStatement(maxSql);
+            rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 int maxId = rs.getInt("max_id");
+                rs.close();
+                pstmt.close();
                 
-                if (rs.wasNull()) {
+                if (maxId == 0) {
                     // Table is empty, delete the sequence entry
                     String deleteSql = "DELETE FROM sqlite_sequence WHERE name = 'teams'";
-                    try (PreparedStatement delPstmt = conn.prepareStatement(deleteSql)) {
-                        delPstmt.executeUpdate();
-                    }
+                    PreparedStatement delPstmt = conn.prepareStatement(deleteSql);
+                    delPstmt.executeUpdate();
+                    delPstmt.close();
                 } else {
                     // Update the sequence to the current max ID
                     String updateSql = "UPDATE sqlite_sequence SET seq = ? WHERE name = 'teams'";
-                    try (PreparedStatement updPstmt = conn.prepareStatement(updateSql)) {
-                        updPstmt.setInt(1, maxId);
-                        updPstmt.executeUpdate();
-                    }
+                    PreparedStatement updPstmt = conn.prepareStatement(updateSql);
+                    updPstmt.setInt(1, maxId);
+                    updPstmt.executeUpdate();
+                    updPstmt.close();
                 }
             }
+        } finally {
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
         }
     }
 
     public Team getTeamById(int id) throws SQLException {
         String sql = "SELECT * FROM teams WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 return mapResultSetToTeam(rs);
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return null;
     }
@@ -296,16 +351,22 @@ public class TeamService {
     public Team getTeamByName(String name) throws SQLException {
         String sql = "SELECT * FROM teams WHERE LOWER(name) = LOWER(?)";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 return mapResultSetToTeam(rs);
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return null;
     }
@@ -314,14 +375,20 @@ public class TeamService {
         List<Team> teams = new ArrayList<>();
         String sql = "SELECT * FROM teams ORDER BY name";
         
-        Connection conn = dbManager.getConnection();
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 teams.add(mapResultSetToTeam(rs));
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (stmt != null) try { stmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return teams;
     }
@@ -330,15 +397,21 @@ public class TeamService {
         List<Team> teams = new ArrayList<>();
         String sql = "SELECT * FROM teams WHERE group_name = ? ORDER BY points DESC, goal_difference DESC, goals_for DESC";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, group);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             while (rs.next()) {
                 teams.add(mapResultSetToTeam(rs));
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return teams;
     }
@@ -347,14 +420,20 @@ public class TeamService {
         List<Team> teams = new ArrayList<>();
         String sql = "SELECT * FROM teams WHERE group_name IS NULL OR group_name = '' ORDER BY name";
         
-        Connection conn = dbManager.getConnection();
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 teams.add(mapResultSetToTeam(rs));
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (stmt != null) try { stmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return teams;
     }
@@ -362,39 +441,53 @@ public class TeamService {
     public void assignTeamToGroup(int teamId, String group) throws SQLException {
         String sql = "UPDATE teams SET group_name = ? WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, group);
             pstmt.setInt(2, teamId);
             pstmt.executeUpdate();
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
     public void clearAllGroups() throws SQLException {
         String sql = "UPDATE teams SET group_name = NULL";
         
-        Connection conn = dbManager.getConnection();
-        try (Statement stmt = conn.createStatement()) {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            conn = dbManager.getConnection();
+            stmt = conn.createStatement();
             stmt.executeUpdate(sql);
         } finally {
-            dbManager.releaseConnection(conn);
+            if (stmt != null) try { stmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
     public int getTeamCountInGroup(String group) throws SQLException {
         String sql = "SELECT COUNT(*) FROM teams WHERE group_name = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, group);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return 0;
     }
@@ -430,12 +523,16 @@ public class TeamService {
                      "goals_for = 0, goals_against = 0, goal_difference = 0, points = 0, qualified = 0 " +
                      "WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, teamId);
             pstmt.executeUpdate();
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
@@ -443,11 +540,15 @@ public class TeamService {
         String sql = "UPDATE teams SET played = 0, won = 0, drawn = 0, lost = 0, " +
                      "goals_for = 0, goals_against = 0, goal_difference = 0, points = 0, qualified = 0";
         
-        Connection conn = dbManager.getConnection();
-        try (Statement stmt = conn.createStatement()) {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            conn = dbManager.getConnection();
+            stmt = conn.createStatement();
             stmt.executeUpdate(sql);
         } finally {
-            dbManager.releaseConnection(conn);
+            if (stmt != null) try { stmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
@@ -456,8 +557,11 @@ public class TeamService {
                      "goals_for = ?, goals_against = ?, goal_difference = ?, points = ?, qualified = ? " +
                      "WHERE id = ?";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, team.getPlayed());
             pstmt.setInt(2, team.getWon());
             pstmt.setInt(3, team.getDrawn());
@@ -470,7 +574,8 @@ public class TeamService {
             pstmt.setInt(10, team.getId());
             pstmt.executeUpdate();
         } finally {
-            dbManager.releaseConnection(conn);
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 
@@ -478,17 +583,23 @@ public class TeamService {
         List<Team> teams = new ArrayList<>();
         String sql = "SELECT * FROM teams WHERE LOWER(name) LIKE ? OR LOWER(code) LIKE ? ORDER BY name";
         
-        Connection conn = dbManager.getConnection();
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
             String searchPattern = "%" + query.toLowerCase() + "%";
             pstmt.setString(1, searchPattern);
             pstmt.setString(2, searchPattern);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             while (rs.next()) {
                 teams.add(mapResultSetToTeam(rs));
             }
         } finally {
-            dbManager.releaseConnection(conn);
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
         return teams;
     }

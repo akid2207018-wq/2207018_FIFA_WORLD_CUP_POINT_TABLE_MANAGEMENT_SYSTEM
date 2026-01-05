@@ -28,7 +28,7 @@
                 
                 <Region HBox.hgrow="ALWAYS" />
                 
-                <Button fx:id="btnGenerateSchedule" onAction="#handleGenerateSchedule" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Generate Schedule" />
+                <Button fx:id="btnImportSchedule" onAction="#handleImportSchedule" style="-fx-background-color: #17a2b8; -fx-text-fill: white;" text="Import Schedule" />
                 <Button fx:id="btnClearSchedule" onAction="#handleClearSchedule" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="Clear Schedule" />
                 <Button fx:id="btnExportSchedule" onAction="#handleExportSchedule" text="Export to JSON" />
                 <Button fx:id="btnRefresh" onAction="#handleRefresh" text="🔄 Refresh" />
