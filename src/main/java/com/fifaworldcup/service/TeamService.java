@@ -147,10 +147,10 @@ public class TeamService {
      * Finds the smallest available ID by looking for gaps in the sequence.
      * Returns null if there are no gaps (should use auto-increment).
      */
-    private Integer findNextAvailableId(Connection conn) throws SQLException {
-        // Find the smallest missing ID
+    private Integer findNextAvailableId(Connection  conn) throws SQLException {
+         // Find the smallest missing ID
         String sql = "SELECT t1.id + 1 AS gap " +
-                     "FROM teams t1 " +
+                     "                FROM teams t1 " +
                      "LEFT JOIN teams t2 ON t1.id + 1 = t2.id " +
                      "WHERE t2.id IS NULL " +
                      "ORDER BY gap " +
@@ -252,13 +252,6 @@ public class TeamService {
             pstmt = conn.prepareStatement(deleteMatches);
             pstmt.setInt(1, teamId);
             pstmt.setInt(2, teamId);
-            pstmt.executeUpdate();
-            pstmt.close();
-            
-            // Delete related players
-            String deletePlayers = "DELETE FROM players WHERE team_id = ?";
-            pstmt = conn.prepareStatement(deletePlayers);
-            pstmt.setInt(1, teamId);
             pstmt.executeUpdate();
             pstmt.close();
             

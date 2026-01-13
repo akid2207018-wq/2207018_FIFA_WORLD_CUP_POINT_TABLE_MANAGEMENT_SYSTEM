@@ -257,6 +257,39 @@ public class MatchService {
         }
         return matches;
     }
+    
+    /**
+     * Get match by two team IDs (in any order)
+     */
+    public Match getMatchByTeams(int team1Id, int team2Id) throws SQLException {
+        String sql = "SELECT m.*, t1.name as team1_name, t2.name as team2_name " +
+                     "FROM matches m " +
+                     "LEFT JOIN teams t1 ON m.team1_id = t1.id " +
+                     "LEFT JOIN teams t2 ON m.team2_id = t2.id " +
+                     "WHERE (m.team1_id = ? AND m.team2_id = ?) OR (m.team1_id = ? AND m.team2_id = ?)";
+        
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, team1Id);
+            pstmt.setInt(2, team2Id);
+            pstmt.setInt(3, team2Id);
+            pstmt.setInt(4, team1Id);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return mapResultSetToMatch(rs);
+            }
+        } finally {
+            if (rs != null) try { rs.close(); } catch (SQLException e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
+        }
+        return null;
+    }
 
     public List<Match> getCompletedMatches() throws SQLException {
         List<Match> matches = new ArrayList<>();
@@ -392,13 +425,44 @@ public class MatchService {
     }
 
     public void importMatchesFromJson(String filePath) throws IOException, SQLException {
+        // First, clear all existing matches to avoid duplicates
+        clearAllMatches();
+        
         try (Reader reader = new FileReader(filePath)) {
             Type matchListType = new TypeToken<ArrayList<Match>>(){}.getType();
             List<Match> matches = gson.fromJson(reader, matchListType);
             
+            // Import matches with their original IDs from JSON
             for (Match match : matches) {
-                addMatch(match);
+                addMatchWithId(match);
             }
+        }
+    }
+    
+    // Helper method to insert match with specific ID from JSON (not auto-generated)
+    private void addMatchWithId(Match match) throws SQLException {
+        String sql = "INSERT INTO matches (id, team1_id, team2_id, team1_score, team2_score, stage, group_name, " +
+                     "match_date, match_number, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = dbManager.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, match.getId()); // Use the ID from JSON file
+            pstmt.setInt(2, match.getTeam1Id());
+            pstmt.setInt(3, match.getTeam2Id());
+            pstmt.setInt(4, match.getTeam1Score());
+            pstmt.setInt(5, match.getTeam2Score());
+            pstmt.setString(6, match.getStage());
+            pstmt.setString(7, match.getGroup());
+            pstmt.setString(8, match.getMatchDate() != null ? match.getMatchDate().format(DATE_FORMATTER) : null);
+            pstmt.setInt(9, match.getMatchNumber());
+            pstmt.setInt(10, match.isCompleted() ? 1 : 0);
+            pstmt.executeUpdate();
+        } finally {
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) dbManager.releaseConnection(conn);
         }
     }
 

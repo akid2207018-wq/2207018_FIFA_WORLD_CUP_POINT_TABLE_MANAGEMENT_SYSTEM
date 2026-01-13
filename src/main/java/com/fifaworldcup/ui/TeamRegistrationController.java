@@ -185,7 +185,7 @@ public class TeamRegistrationController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirm Delete");
         confirm.setHeaderText("Delete Team");
-        confirm.setContentText("Are you sure you want to delete '" + selectedTeam.getName() + "'? This will also delete related matches and players.");
+        confirm.setContentText("Are you sure you want to delete '" + selectedTeam.getName() + "'? This will also delete related matches.");
         
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             try {

@@ -32,9 +32,6 @@ public class HomeController {
     
     @FXML
     private Button btnMatchHistory;
-    
-    @FXML
-    private Button btnPlayerStats;
 
     @FXML
     public void handleTeamRegistration(ActionEvent event) {
@@ -69,11 +66,6 @@ public class HomeController {
     @FXML
     public void handleMatchHistory(ActionEvent event) {
         loadScene(event, "/fxml/match_history.fxml", "Match History");
-    }
-
-    @FXML
-    public void handlePlayerStats(ActionEvent event) {
-        loadScene(event, "/fxml/player_stats.fxml", "Player Statistics");
     }
 
     private void loadScene(ActionEvent event, String fxmlPath, String title) {

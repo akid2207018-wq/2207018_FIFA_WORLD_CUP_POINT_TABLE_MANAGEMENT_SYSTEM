@@ -61,10 +61,6 @@
                                 <Button fx:id="btnMatchHistory" maxWidth="Infinity" onAction="#handleMatchHistory" style="-fx-background-color: linear-gradient(to right, #1e3c72, #2a5298); -fx-text-fill: white;" text="Match History" />
                                 <Label text="View all past match results" wrapText="true" />
                             </VBox>
-                            <VBox style="-fx-background-color:#ffffff; -fx-border-color:#2a5298; -fx-border-radius:8; -fx-padding:12; -fx-pref-width:220;">
-                                <Button fx:id="btnPlayerStats" maxWidth="Infinity" onAction="#handlePlayerStats" style="-fx-background-color: linear-gradient(to right, #1e3c72, #2a5298); -fx-text-fill: white;" text="Player Statistics" />
-                                <Label text="Track goals, assists &amp; performance" wrapText="true" />
-                            </VBox>
                         </HBox>
                     </VBox>
                 </VBox>

@@ -108,21 +108,6 @@ public class DatabaseManager {
             );
 
             stmt.execute(
-                "CREATE TABLE IF NOT EXISTS players (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "name TEXT NOT NULL, " +
-                "team_id INTEGER, " +
-                "jersey_number INTEGER, " +
-                "position TEXT, " +
-                "goals INTEGER DEFAULT 0, " +
-                "assists INTEGER DEFAULT 0, " +
-                "yellow_cards INTEGER DEFAULT 0, " +
-                "red_cards INTEGER DEFAULT 0, " +
-                "matches_played INTEGER DEFAULT 0, " +
-                "FOREIGN KEY(team_id) REFERENCES teams(id))"
-            );
-
-            stmt.execute(
                 "CREATE TABLE IF NOT EXISTS knockout_matches (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "match_number INTEGER, " +
@@ -143,7 +128,6 @@ public class DatabaseManager {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_teams_group ON teams(group_name)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_matches_group ON matches(group_name)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_matches_stage ON matches(stage)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_players_team ON players(team_id)");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_knockout_round ON knockout_matches(round)");
 
         } catch (SQLException e) {

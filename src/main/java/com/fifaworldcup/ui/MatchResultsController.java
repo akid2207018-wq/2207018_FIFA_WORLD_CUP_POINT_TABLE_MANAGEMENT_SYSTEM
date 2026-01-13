@@ -3,6 +3,9 @@ package com.fifaworldcup.ui;
 import com.fifaworldcup.model.Match;
 import com.fifaworldcup.service.MatchService;
 import com.fifaworldcup.service.StandingsService;
+import com.fifaworldcup.service.Fifa2022ApiService;
+import com.fifaworldcup.service.TeamService;
+import com.fifaworldcup.model.Team;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,9 +18,45 @@ import javafx.stage.Stage;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.concurrent.Task;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+
+/**
+ * Match Results Controller
+ * 
+ * API/DATA FLOW:
+ * 1. LOAD MATCHES:
+ *    - Filter options: All, Pending, Completed, A-H (groups)
+ *    - Calls: matchService.getAllMatches() / getPendingMatches() / getCompletedMatches() / getMatchesByGroup(group)
+ *    - SQL: SELECT m.*, t1.name as team1_name, t2.name as team2_name FROM matches m
+ *           LEFT JOIN teams t1 ON m.team1_id = t1.id
+ *           LEFT JOIN teams t2 ON m.team2_id = t2.id
+ *           WHERE [filter_conditions]
+ *    - Returns: List of matches with team names, scores, completion status
+ * 
+ * 2. UPDATE RESULT:
+ *    - User selects match from table
+ *    - User enters scores for both teams
+ *    - Calls: matchService.updateMatchResult(matchId, team1Score, team2Score)
+ *    - SQL: UPDATE matches SET team1_score = ?, team2_score = ?, completed = 1 WHERE id = ?
+ *    - Then calls: standingsService.updateStandings(matchId)
+ *    - Updates: match scores, completion flag, and team standings (played, won, drawn, lost, goals, points)
+ * 
+ * 3. CLEAR RESULT:
+ *    - Calls: matchService.clearMatchResult(matchId)
+ *    - SQL: UPDATE matches SET team1_score = 0, team2_score = 0, completed = 0 WHERE id = ?
+ *    - Then calls: standingsService.recalculateTeamStats(team1Id) and recalculateTeamStats(team2Id)
+ *    - Recalculates: team standings based on remaining completed matches
+ * 
+ * 4. MATCH DATA SOURCE:
+ *    - Matches created by: Match Scheduling screen
+ *    - Or imported from: JSON file (schedule.json)
+ *    - Teams must be: Assigned to groups first (Group Formation screen)
+ *    - Match format: Group stage matches (6 matches per group, each team plays 3 matches)
+ */
 
 public class MatchResultsController {
     @FXML
@@ -70,22 +109,30 @@ public class MatchResultsController {
     
     @FXML
     private Label lblStatus;
+    
+    @FXML
+    private Button btnImportFromApi;
 
     private MatchService matchService;
     private StandingsService standingsService;
+    private TeamService teamService;
+    private Fifa2022ApiService apiService;
     private ObservableList<Match> matchesList;
     private Match selectedMatch;
 
     public MatchResultsController() {
         this.matchService = new MatchService();
         this.standingsService = new StandingsService();
+        this.teamService = new TeamService();
+        this.apiService = new Fifa2022ApiService();
         this.matchesList = FXCollections.observableArrayList();
     }
 
     @FXML
     public void initialize() {
         if (cmbFilterStatus != null) {
-            cmbFilterStatus.getItems().addAll("All", "Pending", "Completed");
+            cmbFilterStatus.getItems().addAll("All", "Pending", "Completed", 
+                                              "A", "B", "C", "D", "E", "F", "G", "H");
             cmbFilterStatus.setValue("All");
         }
         
@@ -178,6 +225,151 @@ public class MatchResultsController {
         lblStatus.setText("Match list refreshed!");
         lblStatus.setStyle("-fx-text-fill: blue;");
     }
+    
+    /**
+     * Import match results from FIFA 2022 API
+     * This will load all group stage match results from the actual World Cup 2022
+     */
+    @FXML
+    public void handleImportFromApi() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Import from API");
+        confirm.setHeaderText("Load FIFA 2022 Match Results");
+        confirm.setContentText("This will import match results from FIFA World Cup 2022. This may take a few moments. Continue?");
+        
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+        
+        // Disable button during loading
+        if (btnImportFromApi != null) {
+            btnImportFromApi.setDisable(true);
+        }
+        lblStatus.setText("Loading matches from FIFA 2022 API...");
+        lblStatus.setStyle("-fx-text-fill: blue;");
+        
+        // Run API call in background thread
+        Task<Void> task = new Task<Void>() {
+            private int importedCount = 0;
+            private int updatedCount = 0;
+            private String errorMessage = null;
+            
+            @Override
+            protected Void call() throws Exception {
+                try {
+                    // Fetch all group stage matches from API
+                    updateMessage("Fetching match data from API...");
+                    List<Map<String, Object>> apiMatches = apiService.fetchAllGroupStageMatches();
+                    
+                    if (apiMatches.isEmpty()) {
+                        errorMessage = "No matches received from API";
+                        return null;
+                    }
+                    
+                    updateMessage("Processing " + apiMatches.size() + " matches...");
+                    
+                    // Import each match
+                    for (Map<String, Object> apiMatch : apiMatches) {
+                        try {
+                            String team1Name = (String) apiMatch.get("team1Name");
+                            String team2Name = (String) apiMatch.get("team2Name");
+                            int team1Score = (Integer) apiMatch.get("team1Score");
+                            int team2Score = (Integer) apiMatch.get("team2Score");
+                            String group = (String) apiMatch.get("group");
+                            boolean completed = (Boolean) apiMatch.get("completed");
+                            
+                            // Skip if teams are TBD
+                            if ("TBD".equals(team1Name) || "TBD".equals(team2Name)) {
+                                continue;
+                            }
+                            
+                            // Get team IDs from database
+                            Team team1 = teamService.getTeamByName(team1Name);
+                            Team team2 = teamService.getTeamByName(team2Name);
+                            
+                            if (team1 == null || team2 == null) {
+                                System.err.println("Teams not found: " + team1Name + " vs " + team2Name);
+                                continue;
+                            }
+                            
+                            // Check if match exists
+                            Match existingMatch = matchService.getMatchByTeams(team1.getId(), team2.getId());
+                            
+                            if (existingMatch != null && completed) {
+                                // Update existing match result
+                                matchService.updateMatchResult(existingMatch.getId(), team1Score, team2Score);
+                                standingsService.updateStandings(existingMatch.getId());
+                                updatedCount++;
+                            } else if (existingMatch == null) {
+                                // Create new match
+                                Match newMatch = new Match();
+                                newMatch.setTeam1Id(team1.getId());
+                                newMatch.setTeam2Id(team2.getId());
+                                newMatch.setTeam1Score(team1Score);
+                                newMatch.setTeam2Score(team2Score);
+                                newMatch.setStage("GROUP");
+                                newMatch.setGroup(group);
+                                newMatch.setCompleted(completed);
+                                
+                                matchService.addMatch(newMatch);
+                                
+                                if (completed) {
+                                    // Get the newly added match and update standings
+                                    Match addedMatch = matchService.getMatchByTeams(team1.getId(), team2.getId());
+                                    if (addedMatch != null) {
+                                        standingsService.updateStandings(addedMatch.getId());
+                                    }
+                                }
+                                importedCount++;
+                            }
+                            
+                            updateProgress(importedCount + updatedCount, apiMatches.size());
+                            
+                        } catch (SQLException e) {
+                            System.err.println("Error importing match: " + e.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    errorMessage = e.getMessage();
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            
+            @Override
+            protected void succeeded() {
+                if (btnImportFromApi != null) {
+                    btnImportFromApi.setDisable(false);
+                }
+                
+                if (errorMessage != null) {
+                    lblStatus.setText("API Error: " + errorMessage);
+                    lblStatus.setStyle("-fx-text-fill: red;");
+                    showAlert("API Error", "Failed to load matches: " + errorMessage, Alert.AlertType.ERROR);
+                } else {
+                    loadMatches();
+                    lblStatus.setText("Successfully imported/updated " + (importedCount + updatedCount) + " matches!");
+                    lblStatus.setStyle("-fx-text-fill: green;");
+                    showAlert("Success", 
+                        "Imported " + importedCount + " new matches and updated " + updatedCount + " existing matches from FIFA World Cup 2022!\n" +
+                        "Standings have been recalculated.", 
+                        Alert.AlertType.INFORMATION);
+                }
+            }
+            
+            @Override
+            protected void failed() {
+                if (btnImportFromApi != null) {
+                    btnImportFromApi.setDisable(false);
+                }
+                lblStatus.setText("Failed to load matches from API");
+                lblStatus.setStyle("-fx-text-fill: red;");
+                showAlert("Error", "Failed to connect to API: " + getException().getMessage(), Alert.AlertType.ERROR);
+            }
+        };
+        
+        new Thread(task).start();
+    }
 
     @FXML
     public void handleBack(ActionEvent event) {
@@ -216,10 +408,14 @@ public class MatchResultsController {
             String filter = cmbFilterStatus != null ? cmbFilterStatus.getValue() : "All";
             List<Match> matches;
             
+            // Filter by status or group
             if ("Pending".equals(filter)) {
                 matches = matchService.getPendingMatches();
             } else if ("Completed".equals(filter)) {
                 matches = matchService.getCompletedMatches();
+            } else if (filter != null && filter.length() == 1 && filter.charAt(0) >= 'A' && filter.charAt(0) <= 'H') {
+                // Group filter (A, B, C, D, E, F, G, H)
+                matches = matchService.getMatchesByGroup(filter);
             } else {
                 matches = matchService.getAllMatches();
             }
