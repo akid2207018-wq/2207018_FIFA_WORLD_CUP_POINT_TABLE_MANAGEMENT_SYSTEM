@@ -2,6 +2,7 @@ package com.fifaworldcup.ui;
 
 import com.fifaworldcup.model.Team;
 import com.fifaworldcup.service.TeamService;
+import com.fifaworldcup.service.Fifa2022ApiService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -12,10 +13,45 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.concurrent.Task;
 
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+/**
+ * Group Formation Controller
+ * 
+ * API/DATA FLOW:
+ * 1. LOAD TEAMS:
+ *    - Calls: teamService.getTeamsWithoutGroup()
+ *    - SQL: SELECT * FROM teams WHERE group_name IS NULL OR group_name = ''
+ *    - Returns: List of teams not yet assigned to any group
+ * 
+ * 2. ASSIGN TO GROUP:
+ *    - User selects team from available list
+ *    - User selects target group (A-H) from dropdown
+ *    - Validates: Max 4 teams per group
+ *    - Calls: teamService.assignTeamToGroup(teamId, groupName)
+ *    - SQL: UPDATE teams SET group_name = ? WHERE id = ?
+ *    - Updates: team.group_name column in database
+ * 
+ * 3. AUTO-ASSIGN:
+ *    - Shuffles all available teams randomly
+ *    - Distributes teams evenly across 8 groups (4 teams each)
+ *    - Requires: Exactly 32 teams (8 groups × 4 teams)
+ *    - Calls: teamService.assignTeamToGroup() for each team
+ * 
+ * 4. SAVE GROUPS:
+ *    - Persists all group assignments to database
+ *    - Prepares teams for match scheduling
+ * 
+ * 5. CLEAR GROUPS:
+ *    - Calls: teamService.clearAllGroups()
+ *    - SQL: UPDATE teams SET group_name = NULL
+ *    - Resets all teams to unassigned state
+ */
 
 public class GroupFormationController {
     @FXML
@@ -65,13 +101,18 @@ public class GroupFormationController {
     
     @FXML
     private Label lblStatus;
+    
+    @FXML
+    private Button btnLoadFromApi;
 
     private TeamService teamService;
+    private Fifa2022ApiService apiService;
     private ObservableList<Team> availableTeams;
     private static final int MAX_TEAMS_PER_GROUP = 4;
 
     public GroupFormationController() {
         this.teamService = new TeamService();
+        this.apiService = new Fifa2022ApiService();
         this.availableTeams = FXCollections.observableArrayList();
     }
 
@@ -244,6 +285,115 @@ public class GroupFormationController {
         lblStatus.setText("Groups saved successfully!");
         lblStatus.setStyle("-fx-text-fill: green;");
         showAlert("Success", "All group assignments have been saved.", Alert.AlertType.INFORMATION);
+    }
+    
+    /**
+     * Load teams and groups from FIFA 2022 API
+     * This will import all 32 teams from the actual World Cup 2022 with their correct groups
+     */
+    @FXML
+    public void handleLoadFromApi() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Import from API");
+        confirm.setHeaderText("Load FIFA 2022 World Cup Teams");
+        confirm.setContentText("This will import all 32 teams from FIFA World Cup 2022 with their official groups. Continue?");
+        
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+        
+        // Disable button during loading
+        if (btnLoadFromApi != null) {
+            btnLoadFromApi.setDisable(true);
+        }
+        lblStatus.setText("Loading teams from FIFA 2022 API...");
+        lblStatus.setStyle("-fx-text-fill: blue;");
+        
+        // Run API call in background thread
+        Task<Void> task = new Task<Void>() {
+            private int importedCount = 0;
+            private String errorMessage = null;
+            
+            @Override
+            protected Void call() throws Exception {
+                try {
+                    // Fetch teams from API
+                    List<Map<String, Object>> apiTeams = apiService.fetchAllTeams();
+                    
+                    if (apiTeams.isEmpty()) {
+                        errorMessage = "No teams received from API";
+                        return null;
+                    }
+                    
+                    // Import each team
+                    for (Map<String, Object> apiTeam : apiTeams) {
+                        String teamName = (String) apiTeam.get("name");
+                        String teamCode = (String) apiTeam.get("code");
+                        String groupName = (String) apiTeam.get("group");
+                        
+                        try {
+                            // Check if team exists
+                            Team existingTeam = teamService.getTeamByName(teamName);
+                            
+                            if (existingTeam != null) {
+                                // Update existing team's group
+                                teamService.assignTeamToGroup(existingTeam.getId(), groupName);
+                            } else {
+                                // Add new team with group
+                                Team newTeam = new Team();
+                                newTeam.setName(teamName);
+                                newTeam.setCode(teamCode);
+                                newTeam.setGroup(groupName);
+                                teamService.addTeam(newTeam);
+                                
+                                // Assign to group
+                                Team addedTeam = teamService.getTeamByName(teamName);
+                                if (addedTeam != null) {
+                                    teamService.assignTeamToGroup(addedTeam.getId(), groupName);
+                                }
+                            }
+                            importedCount++;
+                        } catch (SQLException e) {
+                            System.err.println("Error importing team " + teamName + ": " + e.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    errorMessage = e.getMessage();
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            
+            @Override
+            protected void succeeded() {
+                if (btnLoadFromApi != null) {
+                    btnLoadFromApi.setDisable(false);
+                }
+                
+                if (errorMessage != null) {
+                    lblStatus.setText("API Error: " + errorMessage);
+                    lblStatus.setStyle("-fx-text-fill: red;");
+                    showAlert("API Error", "Failed to load teams: " + errorMessage, Alert.AlertType.ERROR);
+                } else {
+                    refreshGroupLists();
+                    lblStatus.setText("Successfully imported " + importedCount + " teams from FIFA 2022!");
+                    lblStatus.setStyle("-fx-text-fill: green;");
+                    showAlert("Success", "Imported " + importedCount + " teams from FIFA World Cup 2022 with their official groups!", Alert.AlertType.INFORMATION);
+                }
+            }
+            
+            @Override
+            protected void failed() {
+                if (btnLoadFromApi != null) {
+                    btnLoadFromApi.setDisable(false);
+                }
+                lblStatus.setText("Failed to load teams from API");
+                lblStatus.setStyle("-fx-text-fill: red;");
+                showAlert("Error", "Failed to connect to API: " + getException().getMessage(), Alert.AlertType.ERROR);
+            }
+        };
+        
+        new Thread(task).start();
     }
 
     @FXML
