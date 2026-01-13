@@ -23,8 +23,8 @@
         <HBox spacing="10">
                 <Label text="View Round:" />
                 <ComboBox fx:id="cmbSelectRound" onAction="#handleRoundChange" prefWidth="150" promptText="Round of 16" />
-                <Button fx:id="btnGenerateBracket" onAction="#handleGenerateBracket" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Generate Bracket" />
                 <Button fx:id="btnRefresh" onAction="#handleRefresh" text="Refresh" />
+                <Button fx:id="btnImportFromJson" onAction="#handleImportFromJson" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Import from JSON" />
             </HBox>
             
             <ScrollPane fx:id="scrollPane" fitToWidth="true" VBox.vgrow="ALWAYS">

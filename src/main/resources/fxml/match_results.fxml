@@ -53,7 +53,7 @@
         
         <HBox spacing="10">
             <Label text="Filter:" />
-            <ComboBox fx:id="cmbFilterStatus" onAction="#handleFilterChange" prefWidth="150" promptText="All Matches" />
+            <ComboBox fx:id="cmbFilterStatus" onAction="#handleFilterChange" prefWidth="200" promptText="All Matches" />
         </HBox>
         
         <VBox spacing="10" VBox.vgrow="ALWAYS">

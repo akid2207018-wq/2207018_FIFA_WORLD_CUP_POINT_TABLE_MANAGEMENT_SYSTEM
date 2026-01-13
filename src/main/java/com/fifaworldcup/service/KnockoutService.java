@@ -31,13 +31,14 @@ public class KnockoutService {
      * Match 8: 1H vs 2G
      */
     public void generateRoundOf16Bracket() throws SQLException {
-        // Clear existing knockout matches
+        
+        
         clearKnockoutMatches();
         
-        // Ensure qualifiers are determined
+        
         standingsService.determineAllGroupQualifiers();
         
-        // Get winners and runners-up from each group
+        
         String[] groups = {"A", "B", "C", "D", "E", "F", "G", "H"};
         Team[] winners = new Team[8];
         Team[] runnersUp = new Team[8];
@@ -48,30 +49,29 @@ public class KnockoutService {
             if (standings.size() >= 2) runnersUp[i] = standings.get(1);
         }
         
-        // Create Round of 16 matches according to FIFA format
-        // Left bracket
+        
         createKnockoutMatch(1, "ROUND_16", winners[0], runnersUp[1], "L1");  // 1A vs 2B
         createKnockoutMatch(2, "ROUND_16", winners[2], runnersUp[3], "L2");  // 1C vs 2D
         createKnockoutMatch(3, "ROUND_16", winners[4], runnersUp[5], "L3");  // 1E vs 2F
         createKnockoutMatch(4, "ROUND_16", winners[6], runnersUp[7], "L4");  // 1G vs 2H
         
-        // Right bracket
+        
         createKnockoutMatch(5, "ROUND_16", winners[1], runnersUp[0], "R1");  // 1B vs 2A
         createKnockoutMatch(6, "ROUND_16", winners[3], runnersUp[2], "R2");  // 1D vs 2C
         createKnockoutMatch(7, "ROUND_16", winners[5], runnersUp[4], "R3");  // 1F vs 2E
         createKnockoutMatch(8, "ROUND_16", winners[7], runnersUp[6], "R4");  // 1H vs 2G
         
-        // Create empty Quarter-final slots
+        
         createKnockoutMatch(9, "QUARTER", null, null, "QL1");   // Winner M1 vs Winner M2
         createKnockoutMatch(10, "QUARTER", null, null, "QL2");  // Winner M3 vs Winner M4
         createKnockoutMatch(11, "QUARTER", null, null, "QR1");  // Winner M5 vs Winner M6
         createKnockoutMatch(12, "QUARTER", null, null, "QR2");  // Winner M7 vs Winner M8
         
-        // Create empty Semi-final slots
+        
         createKnockoutMatch(13, "SEMI", null, null, "SL");      // Winner QF1 vs Winner QF2
         createKnockoutMatch(14, "SEMI", null, null, "SR");      // Winner QF3 vs Winner QF4
         
-        // Create empty Final slot
+        
         createKnockoutMatch(15, "FINAL", null, null, "F");      // Winner SF1 vs Winner SF2
     }
 
@@ -193,6 +193,33 @@ public class KnockoutService {
         Connection conn = dbManager.getConnection();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return mapResultSetToKnockoutMatch(rs);
+            }
+        } finally {
+            dbManager.releaseConnection(conn);
+        }
+        return null;
+    }
+    
+    /**
+     * Get knockout match by two team IDs (in any order)
+     */
+    public KnockoutMatch getKnockoutMatchByTeams(int team1Id, int team2Id) throws SQLException {
+        String sql = "SELECT km.*, t1.name as team1_name, t2.name as team2_name, tw.name as winner_name " +
+                     "FROM knockout_matches km " +
+                     "LEFT JOIN teams t1 ON km.team1_id = t1.id " +
+                     "LEFT JOIN teams t2 ON km.team2_id = t2.id " +
+                     "LEFT JOIN teams tw ON km.winner_id = tw.id " +
+                     "WHERE (km.team1_id = ? AND km.team2_id = ?) OR (km.team1_id = ? AND km.team2_id = ?)";
+        
+        Connection conn = dbManager.getConnection();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, team1Id);
+            pstmt.setInt(2, team2Id);
+            pstmt.setInt(3, team2Id);
+            pstmt.setInt(4, team1Id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return mapResultSetToKnockoutMatch(rs);

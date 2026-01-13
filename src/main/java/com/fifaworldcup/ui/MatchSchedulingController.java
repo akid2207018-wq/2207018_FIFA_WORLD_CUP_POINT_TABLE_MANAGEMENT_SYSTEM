@@ -2,7 +2,10 @@ package com.fifaworldcup.ui;
 
 import com.fifaworldcup.database.DatabaseManager;
 import com.fifaworldcup.model.Match;
+import com.fifaworldcup.model.Team;
+import com.fifaworldcup.service.Fifa2022ApiService;
 import com.fifaworldcup.service.MatchService;
+import com.fifaworldcup.service.StandingsService;
 import com.fifaworldcup.service.TeamService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -19,6 +22,7 @@ import javafx.stage.Stage;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.concurrent.Task;
 
 import java.io.File;
 import java.io.FileReader;
@@ -26,11 +30,14 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MatchSchedulingController {
     @FXML
@@ -61,6 +68,9 @@ public class MatchSchedulingController {
     private ComboBox<String> cmbFilterGroup;
     
     @FXML
+    private Button btnImportFromAPI;
+    
+    @FXML
     private Button btnImportSchedule;
     
     @FXML
@@ -83,12 +93,16 @@ public class MatchSchedulingController {
 
     private MatchService matchService;
     private TeamService teamService;
+    private Fifa2022ApiService apiService;
+    private StandingsService standingsService;
     private ObservableList<Match> matchesList;
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public MatchSchedulingController() {
         this.matchService = new MatchService();
         this.teamService = new TeamService();
+        this.apiService = new Fifa2022ApiService();
+        this.standingsService = new StandingsService();
         this.matchesList = FXCollections.observableArrayList();
     }
 
@@ -161,6 +175,149 @@ public class MatchSchedulingController {
             }
         }
     }
+    
+    @FXML
+    public void handleImportFromAPI() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Import from FIFA 2022 API");
+        confirm.setHeaderText("Load FIFA World Cup 2022 Schedule");
+        confirm.setContentText("This will import group stage match schedule from FIFA World Cup 2022.\nExisting schedule will be replaced. Continue?");
+        
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+        
+        if (btnImportFromAPI != null) {
+            btnImportFromAPI.setDisable(true);
+        }
+        lblStatus.setText("Loading matches from FIFA 2022 API...");
+        lblStatus.setStyle("-fx-text-fill: blue;");
+        
+        // Run API call in background thread
+        Task<Void> task = new Task<Void>() {
+            private int importedCount = 0;
+            private String errorMessage = null;
+            
+            @Override
+            protected Void call() throws Exception {
+                try {
+                    // First, fetch and import teams if needed
+                    updateMessage("Fetching teams from API...");
+                    List<Map<String, Object>> apiTeams = apiService.fetchAllTeams();
+                    
+                    for (Map<String, Object> apiTeam : apiTeams) {
+                        String teamName = (String) apiTeam.get("name");
+                        String teamCode = (String) apiTeam.get("code");
+                        String groupName = (String) apiTeam.get("group");
+                        
+                        try {
+                            Team existingTeam = teamService.getTeamByName(teamName);
+                            if (existingTeam == null) {
+                                Team newTeam = new Team();
+                                newTeam.setName(teamName);
+                                newTeam.setCode(teamCode);
+                                newTeam.setGroup(groupName);
+                                teamService.addTeam(newTeam);
+                                
+                                Team addedTeam = teamService.getTeamByName(teamName);
+                                if (addedTeam != null) {
+                                    teamService.assignTeamToGroup(addedTeam.getId(), groupName);
+                                }
+                            } else if (existingTeam.getGroup() == null || existingTeam.getGroup().isEmpty()) {
+                                teamService.assignTeamToGroup(existingTeam.getId(), groupName);
+                            }
+                        } catch (SQLException e) {
+                            System.err.println("Error importing team " + teamName + ": " + e.getMessage());
+                        }
+                    }
+                    
+                    // Now fetch matches
+                    updateMessage("Fetching match schedule...");
+                    List<Map<String, Object>> apiMatches = apiService.fetchAllGroupStageMatches();
+                    
+                    if (apiMatches.isEmpty()) {
+                        errorMessage = "No matches received from API";
+                        return null;
+                    }
+                    
+                    // Clear existing matches
+                    matchService.clearAllMatches();
+                    
+                    // Import each match
+                    int matchNum = 1;
+                    for (Map<String, Object> apiMatch : apiMatches) {
+                        try {
+                            String team1Name = (String) apiMatch.get("team1Name");
+                            String team2Name = (String) apiMatch.get("team2Name");
+                            String group = (String) apiMatch.get("group");
+                            
+                            if ("TBD".equals(team1Name) || "TBD".equals(team2Name) || group == null) {
+                                continue;
+                            }
+                            
+                            Team team1 = teamService.getTeamByName(team1Name);
+                            Team team2 = teamService.getTeamByName(team2Name);
+                            
+                            if (team1 == null || team2 == null) {
+                                System.err.println("Teams not found: " + team1Name + " vs " + team2Name);
+                                continue;
+                            }
+                            
+                            Match newMatch = new Match();
+                            newMatch.setMatchNumber(matchNum++);
+                            newMatch.setTeam1Id(team1.getId());
+                            newMatch.setTeam2Id(team2.getId());
+                            newMatch.setTeam1Score(0);
+                            newMatch.setTeam2Score(0);
+                            newMatch.setStage("GROUP");
+                            newMatch.setGroup(group);
+                            newMatch.setCompleted(false);
+                            
+                            matchService.addMatch(newMatch);
+                            importedCount++;
+                            
+                        } catch (SQLException e) {
+                            System.err.println("Error importing match: " + e.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    errorMessage = e.getMessage();
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            
+            @Override
+            protected void succeeded() {
+                if (btnImportFromAPI != null) {
+                    btnImportFromAPI.setDisable(false);
+                }
+                
+                if (errorMessage != null) {
+                    lblStatus.setText("API Error: " + errorMessage);
+                    lblStatus.setStyle("-fx-text-fill: red;");
+                    showAlert("API Error", "Failed to load schedule: " + errorMessage, Alert.AlertType.ERROR);
+                } else {
+                    loadMatches();
+                    lblStatus.setText("Successfully imported " + importedCount + " matches from FIFA 2022!");
+                    lblStatus.setStyle("-fx-text-fill: green;");
+                    showAlert("Success", "Imported " + importedCount + " group stage matches from FIFA World Cup 2022!", Alert.AlertType.INFORMATION);
+                }
+            }
+            
+            @Override
+            protected void failed() {
+                if (btnImportFromAPI != null) {
+                    btnImportFromAPI.setDisable(false);
+                }
+                lblStatus.setText("Failed to load matches from API");
+                lblStatus.setStyle("-fx-text-fill: red;");
+                showAlert("Error", "Failed to connect to API: " + getException().getMessage(), Alert.AlertType.ERROR);
+            }
+        };
+        
+        new Thread(task).start();
+    }
 
     @FXML
     public void handleImportSchedule() {
@@ -188,11 +345,10 @@ public class MatchSchedulingController {
                 DatabaseManager dbManager = DatabaseManager.getInstance();
                 conn = dbManager.getConnection();
                 
-                // Clear existing matches
+                // Clear existing matches AND teams for clean import
                 stmt = conn.createStatement();
                 stmt.executeUpdate("DELETE FROM matches");
-                stmt.executeUpdate("UPDATE teams SET played = 0, won = 0, drawn = 0, lost = 0, " +
-                        "goals_for = 0, goals_against = 0, goal_difference = 0, points = 0, qualified = 0");
+                stmt.executeUpdate("DELETE FROM teams");
                 stmt.close();
                 stmt = null;
                 
@@ -202,23 +358,64 @@ public class MatchSchedulingController {
                 reader.close();
                 reader = null;
                 
-                // Insert each match directly
-                String sql = "INSERT INTO matches (team1_id, team2_id, team1_score, team2_score, stage, group_name, " +
-                             "match_date, match_number, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                // First pass: collect all unique teams from the matches
+                java.util.Map<Integer, String[]> teamsFromMatches = new java.util.HashMap<>();
+                java.util.Map<Integer, String> teamGroups = new java.util.HashMap<>();
+                
+                for (com.google.gson.JsonElement element : jsonArray) {
+                    com.google.gson.JsonObject obj = element.getAsJsonObject();
+                    int team1Id = obj.get("team1Id").getAsInt();
+                    int team2Id = obj.get("team2Id").getAsInt();
+                    String team1Name = obj.get("team1Name").getAsString();
+                    String team2Name = obj.get("team2Name").getAsString();
+                    String group = obj.has("group") && !obj.get("group").isJsonNull() ? obj.get("group").getAsString() : null;
+                    
+                    if (!teamsFromMatches.containsKey(team1Id)) {
+                        teamsFromMatches.put(team1Id, new String[]{team1Name, team1Name.substring(0, Math.min(3, team1Name.length())).toUpperCase()});
+                        if (group != null) teamGroups.put(team1Id, group);
+                    }
+                    if (!teamsFromMatches.containsKey(team2Id)) {
+                        teamsFromMatches.put(team2Id, new String[]{team2Name, team2Name.substring(0, Math.min(3, team2Name.length())).toUpperCase()});
+                        if (group != null) teamGroups.put(team2Id, group);
+                    }
+                }
+                
+                // Insert teams with their IDs from JSON
+                String teamSql = "INSERT INTO teams (id, name, code, group_name) VALUES (?, ?, ?, ?)";
+                pstmt = conn.prepareStatement(teamSql);
+                for (java.util.Map.Entry<Integer, String[]> entry : teamsFromMatches.entrySet()) {
+                    pstmt.setInt(1, entry.getKey());
+                    pstmt.setString(2, entry.getValue()[0]);
+                    pstmt.setString(3, entry.getValue()[1]);
+                    pstmt.setString(4, teamGroups.get(entry.getKey()));
+                    pstmt.executeUpdate();
+                }
+                pstmt.close();
+                pstmt = null;
+                
+                // Now insert matches with IDs from JSON
+                reader = new FileReader(file);
+                jsonArray = com.google.gson.JsonParser.parseReader(reader).getAsJsonArray();
+                reader.close();
+                reader = null;
+                
+                String sql = "INSERT INTO matches (id, team1_id, team2_id, team1_score, team2_score, stage, group_name, " +
+                             "match_date, match_number, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 pstmt = conn.prepareStatement(sql);
                 
                 int count = 0;
                 for (com.google.gson.JsonElement element : jsonArray) {
                     com.google.gson.JsonObject obj = element.getAsJsonObject();
-                    pstmt.setInt(1, obj.get("team1Id").getAsInt());
-                    pstmt.setInt(2, obj.get("team2Id").getAsInt());
-                    pstmt.setInt(3, obj.get("team1Score").getAsInt());
-                    pstmt.setInt(4, obj.get("team2Score").getAsInt());
-                    pstmt.setString(5, obj.get("stage").getAsString());
-                    pstmt.setString(6, obj.get("group").getAsString());
-                    pstmt.setString(7, null); // matchDate always null
-                    pstmt.setInt(8, obj.get("matchNumber").getAsInt());
-                    pstmt.setInt(9, obj.get("completed").getAsBoolean() ? 1 : 0);
+                    pstmt.setInt(1, obj.get("id").getAsInt());
+                    pstmt.setInt(2, obj.get("team1Id").getAsInt());
+                    pstmt.setInt(3, obj.get("team2Id").getAsInt());
+                    pstmt.setInt(4, obj.get("team1Score").getAsInt());
+                    pstmt.setInt(5, obj.get("team2Score").getAsInt());
+                    pstmt.setString(6, obj.get("stage").getAsString());
+                    pstmt.setString(7, obj.has("group") && !obj.get("group").isJsonNull() ? obj.get("group").getAsString() : null);
+                    pstmt.setString(8, null);
+                    pstmt.setInt(9, obj.get("matchNumber").getAsInt());
+                    pstmt.setInt(10, obj.get("completed").getAsBoolean() ? 1 : 0);
                     pstmt.executeUpdate();
                     count++;
                 }
@@ -228,8 +425,15 @@ public class MatchSchedulingController {
                 dbManager.releaseConnection(conn);
                 conn = null;
                 
+                // Recalculate all standings based on imported match results
+                try {
+                    standingsService.recalculateAllStandings();
+                } catch (SQLException e) {
+                    System.err.println("Error recalculating standings: " + e.getMessage());
+                }
+                
                 loadMatches();
-                lblStatus.setText(count + " matches imported from " + file.getName());
+                lblStatus.setText(count + " matches imported. Standings recalculated!");
                 lblStatus.setStyle("-fx-text-fill: green;");
                 
             } catch (Exception e) {

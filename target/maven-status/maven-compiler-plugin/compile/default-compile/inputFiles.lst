@@ -1,13 +1,14 @@
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\database\DatabaseManager.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\ui\MatchHistoryController.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\model\Team.java
-C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\ui\PlayerStatsController.java
-C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\model\Player.java
+C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\service\TestFifa2022Api.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\ui\HomeController.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\ui\PointsTableController.java
+C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\service\FootballDataApiService.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\service\TeamService.java
-C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\service\PlayerService.java
+C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\TestFifa2022Api.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\model\KnockoutMatch.java
+C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\service\Fifa2022ApiService.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\ui\MatchResultsController.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\service\StandingsService.java
 C:\code\intellij\projects\2207018_FIFA_WORLD_CUP_POINT_TABLE_MANAGEMENT_SYSTEM\src\main\java\com\fifaworldcup\ui\MatchSchedulingController.java
